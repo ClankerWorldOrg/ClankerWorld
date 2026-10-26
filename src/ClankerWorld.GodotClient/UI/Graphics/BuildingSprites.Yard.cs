@@ -12,10 +12,6 @@ public static partial class BuildingSprites
         // on trampled earth, copied from tools/ArtPreview/Proposed/Yards.cs.
         // ------------------------------------------------------------------
 
-        private static readonly Ramp YardTimber = Ramp.Of("3F2A1A", "6E4E31", "8A6440", "A77C52", "D2AC77");
-        private static readonly Ramp YardDirt = Ramp.Of("6E5538", "977852", "B99A6B", "C9AC7C", "D9C08F");
-        private static readonly Ramp YardThatch = Ramp.Of("6B5528", "A98A45", "D2AE5E", "E6C77B", "F0DA9A");
-        private static readonly Ramp YardLeaf = Ramp.Of("3C5F2E", "4C7A3A", "5E8C45", "79A657", "9BC66F");
         private static readonly Ramp YardWater = Ramp.Of("3A5F7A", "4A7B9D", "598FB3", "6A9FC0", "8ABBD6");
         private static readonly Color YardShadow = new(0.05f, 0.08f, 0.05f, 0.28f);
 
@@ -37,7 +33,7 @@ public static partial class BuildingSprites
             EarthFloor(c, w, h, seed, grassEdge: true);
             Trough(c, TroughSpot(w, h, door, gate));
             HayPile(c, FeedSpot(w, h, door));
-            RailFence(c, w, h, door, gate, YardTimber, rails: 2, postGap: 10);
+            RailFence(c, w, h, door, gate, Timber, rails: 2, postGap: 10);
             return tilePixels == 32 ? image : ResizeArt(image, tilesWide * tilePixels, tilesHigh * tilePixels);
         }
 
@@ -78,7 +74,7 @@ public static partial class BuildingSprites
                 for (var x = 3; x < w - 3; x++)
                 {
                     var n = PixelArt.Hash(x, y, seed) % 23;
-                    var color = n == 0 ? YardDirt.Shade : n == 1 ? YardDirt.Light : n == 2 && (x + y) % 3 == 0 ? YardDirt.Edge : YardDirt.Base;
+                    var color = n == 0 ? Dirt.Shade : n == 1 ? Dirt.Light : n == 2 && (x + y) % 3 == 0 ? Dirt.Edge : Dirt.Base;
                     c.Dot(x, y, color);
                 }
             // Hoof marks: little paired dark nicks.
@@ -86,8 +82,8 @@ public static partial class BuildingSprites
             {
                 var hx = 6 + (int)(PixelArt.Hash(k, 3, seed) % (uint)(w - 12));
                 var hy = 6 + (int)(PixelArt.Hash(k, 9, seed) % (uint)(h - 12));
-                c.Dot(hx, hy, YardDirt.Shade);
-                c.Dot(hx + 2, hy, YardDirt.Shade);
+                c.Dot(hx, hy, Dirt.Shade);
+                c.Dot(hx + 2, hy, Dirt.Shade);
             }
             if (!grassEdge) return;
             // Grass the animals do not reach survives in tufts just inside the fence.
@@ -107,9 +103,9 @@ public static partial class BuildingSprites
         {
             if (PixelArt.Hash(x, y, seed) % (uint)odds != 0) return;
             var tall = PixelArt.Hash(y, x, seed) % 2 == 0;
-            c.Dot(x, y, YardLeaf.Base);
-            c.Dot(x + 1, y, YardLeaf.Shade);
-            if (tall) c.Dot(x, y - 1, YardLeaf.Light);
+            c.Dot(x, y, OrchardCanopy.Base);
+            c.Dot(x + 1, y, OrchardCanopy.Shade);
+            if (tall) c.Dot(x, y - 1, OrchardCanopy.Light);
         }
 
         /// <summary>A plank trough of water with a dark rim, lit along its north-west edges.</summary>
@@ -120,10 +116,10 @@ public static partial class BuildingSprites
             var tw = r.Size.X;
             var th = r.Size.Y;
             c.Rect(x + 1, y + 1, tw, th, YardShadow);
-            c.Rect(x, y, tw, th, YardTimber.Edge);
-            c.Rect(x + 1, y + 1, tw - 2, th - 2, YardTimber.Shade);
-            c.Rect(x + 1, y, tw - 2, 1, YardTimber.Light);
-            c.Rect(x, y + 1, 1, th - 2, YardTimber.Light);
+            c.Rect(x, y, tw, th, Timber.Edge);
+            c.Rect(x + 1, y + 1, tw - 2, th - 2, Timber.Shade);
+            c.Rect(x + 1, y, tw - 2, 1, Timber.Light);
+            c.Rect(x, y + 1, 1, th - 2, Timber.Light);
             c.Rect(x + 2, y + 2, tw - 4, th - 4, YardWater.Base);
             c.Rect(x + 2, y + 2, tw - 4, 1, YardWater.Highlight);
             c.Dot(x + tw - 3, y + th - 3, YardWater.Shade);
@@ -133,13 +129,13 @@ public static partial class BuildingSprites
         private static void HayPile(PixelCanvas c, Vector2 at)
         {
             c.Ellipse(at.X + 1.5f, at.Y + 2, 7, 5.5f, YardShadow);
-            c.Lumpy(at.X, at.Y, 6.5f, YardThatch.Edge, 7, 2);
-            c.Lumpy(at.X, at.Y, 5.6f, YardThatch.Shade, 7, 2);
-            c.Lumpy(at.X - 0.8f, at.Y - 0.8f, 4.4f, YardThatch.Base, 6, 1);
-            c.Lumpy(at.X - 1.8f, at.Y - 1.8f, 2.4f, YardThatch.Light, 5, 0);
-            c.Line(at.X + 4, at.Y + 5, at.X + 8, at.Y + 6, YardThatch.Base);
-            c.Line(at.X - 6, at.Y + 4, at.X - 8, at.Y + 7, YardThatch.Shade);
-            c.Dot(at.X - 2, at.Y - 3, YardThatch.Highlight);
+            c.Lumpy(at.X, at.Y, 6.5f, Thatch.Edge, 7, 2);
+            c.Lumpy(at.X, at.Y, 5.6f, Thatch.Shade, 7, 2);
+            c.Lumpy(at.X - 0.8f, at.Y - 0.8f, 4.4f, Thatch.Base, 6, 1);
+            c.Lumpy(at.X - 1.8f, at.Y - 1.8f, 2.4f, Thatch.Light, 5, 0);
+            c.Line(at.X + 4, at.Y + 5, at.X + 8, at.Y + 6, Thatch.Base);
+            c.Line(at.X - 6, at.Y + 4, at.X - 8, at.Y + 7, Thatch.Shade);
+            c.Dot(at.X - 2, at.Y - 3, Thatch.Highlight);
         }
 
         /// <summary>
@@ -236,7 +232,7 @@ public static partial class BuildingSprites
                 {
                     var point = P(a, b);
                     var n = PixelArt.Hash((int)point.X, (int)point.Y, 77) % 6;
-                    c.Dot(point.X, point.Y, n == 0 ? YardDirt.Shade : n == 1 ? YardDirt.Light : YardDirt.Base);
+                    c.Dot(point.X, point.Y, n == 0 ? Dirt.Shade : n == 1 ? Dirt.Light : Dirt.Base);
                 }
             void Stout(float a, float b)
             {

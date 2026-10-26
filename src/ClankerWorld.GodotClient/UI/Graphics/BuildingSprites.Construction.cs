@@ -1,4 +1,5 @@
 using Godot;
+using static ClankerWorld.GodotClient.UI.SpriteDrawing;
 
 namespace ClankerWorld.GodotClient.UI;
 
@@ -67,43 +68,51 @@ public static partial class BuildingSprites
         return texture;
     }
 
+    /// <summary>What part of a structure is built or weathers.</summary>
+    private enum Shape { Building, Fence, Pier, Bridge, Lantern }
+
+    /// <summary>The finished 32 px art and its structure mask, excluding yards and doorsteps on roofed buildings.</summary>
+    private static (Image Finished, bool[,] Mask, int Width, int Height, float DoorMiddle, Shape Kind, bool Roofed)
+        PrepareStructure(BuildingKind kind, int tilesWide, int tilesHigh, BuildingDoor door)
+    {
+        var finished = Render(kind, tilesWide, tilesHigh, 32, door);
+        var w = tilesWide * 32;
+        var h = tilesHigh * 32;
+        var mask = new bool[w, h];
+        var plan = Plan(kind, tilesWide, tilesHigh, door);
+        var roofed = kind != BuildingKind.Port && ApprovedArt.PlanFor(kind, tilesWide, tilesHigh, door, 32) is not null;
+        var shape = kind switch
+        {
+            BuildingKind.Port => Shape.Pier,
+            BuildingKind.AnimalYard => Shape.Fence,
+            _ => Shape.Building,
+        };
+        // A yard weathers only its fence, five units in from the footprint's edge.
+        for (var y = 0; y < h; y++)
+            for (var x = 0; x < w; x++)
+                mask[x, y] = roofed
+                    ? Inside(plan.Roof, x, y) || plan.Wing is { } wing && Inside(wing, x, y)
+                    : finished.GetPixel(x, y).A > 0.9f && (shape != Shape.Fence || x < 6 || y < 6 || x >= w - 6 || y >= h - 6);
+        return (finished, mask, w, h, plan.DoorMiddle, shape, roofed);
+    }
+
+    private static bool Inside(Rect2 area, int x, int y) =>
+        x >= (int)MathF.Round(area.Position.X) && x < (int)MathF.Round(area.End.X) &&
+        y >= (int)MathF.Round(area.Position.Y) && y < (int)MathF.Round(area.End.Y);
+
     /// <summary>The approved construction stages, copied from <c>tools/ArtPreview/Proposed/BuildingStates.cs</c>.</summary>
     private static class Construction
     {
-        private readonly record struct SiteRamp(Color Edge, Color Shade, Color Base, Color Light, Color Highlight);
-
-        private static readonly SiteRamp SiteTimber = new(new("3F2A1A"), new("6E4E31"), new("8A6440"), new("A77C52"), new("D2AC77"));
-        private static readonly SiteRamp SiteRock = new(new("4A4542"), new("625B56"), new("756D68"), new("8B837D"), new("A49C95"));
-        private static readonly SiteRamp SiteDirt = new(new("6E5538"), new("977852"), new("B99A6B"), new("C9AC7C"), new("D9C08F"));
         private static readonly Color SiteString = new("E8DCC0");
         private static readonly Color SiteSoot = new("2A2622");
         private static readonly Color SiteShadow = new(0.05f, 0.08f, 0.05f, 0.28f);
-
-        /// <summary>What kind of structure is going up: a roofed building, a fence, or a pier over water.</summary>
-        private enum Shape { Building, Fence, Pier }
 
         /// <summary>One site: the finished picture, the structure inside it, which way it faces and which side is built first.</summary>
         private sealed record Look(Image Finished, bool[,] Mask, int Width, int Height, DoorSide Door, float DoorMiddle, Vector2 Back, Shape Kind, bool Doorway);
 
         public static Image Draw(BuildingKind kind, int tilesWide, int tilesHigh, BuildingDoor door, int stage)
         {
-            var finished = Render(kind, tilesWide, tilesHigh, 32, door);
-            var w = tilesWide * 32;
-            var h = tilesHigh * 32;
-            var mask = new bool[w, h];
-            var plan = Plan(kind, tilesWide, tilesHigh, door);
-            var roofed = kind != BuildingKind.Port && ApprovedArt.PlanFor(kind, tilesWide, tilesHigh, door, 32) is not null;
-            var shape = kind switch
-            {
-                BuildingKind.Port => Shape.Pier,
-                BuildingKind.AnimalYard => Shape.Fence,
-                _ => Shape.Building,
-            };
-            for (var y = 0; y < h; y++)
-                for (var x = 0; x < w; x++)
-                    mask[x, y] = roofed
-                        ? Inside(plan.Roof, x, y) || plan.Wing is { } wing && Inside(wing, x, y)
-                        : finished.GetPixel(x, y).A > 0.9f && (shape != Shape.Fence || x < 6 || y < 6 || x >= w - 6 || y >= h - 6);
+            var (finished, mask, w, h, doorMiddle, shape, roofed) = PrepareStructure(kind, tilesWide, tilesHigh, door);
             // Work starts at the back, so the open frame faces the Road; a pier is built out from the land.
             var side = shape == Shape.Pier
                 ? tilesHigh >= tilesWide
@@ -118,13 +127,9 @@ public static partial class BuildingSprites
                 _ => new Vector2(0, -1),
             };
             if (shape == Shape.Pier) back = -back;
-            var middle = kind == BuildingKind.Silo ? tilesWide * 16f : plan.DoorMiddle;
+            var middle = kind == BuildingKind.Silo ? tilesWide * 16f : doorMiddle;
             return Apply(new Look(finished, mask, w, h, side, middle, back, shape, roofed || kind == BuildingKind.Silo), stage);
         }
-
-        private static bool Inside(Rect2 area, int x, int y) =>
-            x >= (int)MathF.Round(area.Position.X) && x < (int)MathF.Round(area.End.X) &&
-            y >= (int)MathF.Round(area.Position.Y) && y < (int)MathF.Round(area.End.Y);
 
         /// <summary>One construction stage on its own, transparent outside the site.</summary>
         private static Image Apply(Look s, int stage)
@@ -146,7 +151,7 @@ public static partial class BuildingSprites
                         if (near > 2 || (near == 2 && Hash(x, y, 3) % 3 == 0)) continue;
                         if (s.Kind == Shape.Fence && !In(mask, x, y) && near > 1) continue;
                         var n = Hash(x, y, 5) % 19;
-                        Blend(image, x, y, n == 0 ? SiteDirt.Shade : n == 1 ? SiteDirt.Light : SiteDirt.Base);
+                        Blend(image, x, y, n == 0 ? Dirt.Shade : n == 1 ? Dirt.Light : Dirt.Base);
                     }
 
             switch (s.Kind)
@@ -180,8 +185,8 @@ public static partial class BuildingSprites
         private static void Stake(Image image, int x, int y)
         {
             Rect(image, x + 1, y + 1, 2, 2, SiteShadow);
-            Rect(image, x, y, 2, 2, SiteTimber.Edge);
-            Blend(image, x, y, SiteTimber.Highlight);
+            Rect(image, x, y, 2, 2, Timber.Edge);
+            Blend(image, x, y, Timber.Highlight);
         }
 
         /// <summary>Piles driven along both edges of a pier every six pixels, following its outline, each with a ripple; none on land.</summary>
@@ -193,8 +198,8 @@ public static partial class BuildingSprites
             {
                 if (OnLand(s, x, y)) return;
                 Blend(image, x - 1, y, ripple); Blend(image, x + 2, y + 1, ripple);
-                Rect(image, x, y, 2, 2, SiteTimber.Edge);
-                Blend(image, x, y, SiteTimber.Light);
+                Rect(image, x, y, 2, 2, Timber.Edge);
+                Blend(image, x, y, Timber.Light);
             }
             for (var a = (lengthwise ? b.Position.Y : b.Position.X) + 2; a < (lengthwise ? b.End.Y : b.End.X) - 1; a += 6)
             {
@@ -250,13 +255,13 @@ public static partial class BuildingSprites
                         // Stage 2: stone footing, lit on its north-west rim; stage 3: the walls' timber tops.
                         var litRim = depth == 1 && (!In(mask, x - 1, y) || !In(mask, x, y - 1));
                         var shadeRim = depth == 1 && (!In(mask, x + 1, y) || !In(mask, x, y + 1));
-                        var ramp = stage == 2 ? SiteRock : SiteTimber;
+                        var ramp = stage == 2 ? Rock : Timber;
                         Blend(image, x, y, litRim ? ramp.Light : shadeRim ? ramp.Shade : ramp.Base);
                         continue;
                     }
                     if (depth == 3 && !timberOnly)
                     {
-                        if (!InDoorGap(x, y)) Blend(image, x, y, stage == 2 ? SiteTimber.Base : SiteTimber.Shade);
+                        if (!InDoorGap(x, y)) Blend(image, x, y, stage == 2 ? Timber.Base : Timber.Shade);
                         continue;
                     }
                     // Inside: floorboards across the structure, laid from the back.
@@ -265,10 +270,10 @@ public static partial class BuildingSprites
                     if (planked)
                     {
                         var board = row % 3;
-                        Blend(image, x, y, board == 2 ? SiteTimber.Shade : (row / 3 + (horizontalDoor ? x : y) / 9) % 2 == 0 ? SiteTimber.Light : SiteTimber.Base);
+                        Blend(image, x, y, board == 2 ? Timber.Shade : (row / 3 + (horizontalDoor ? x : y) / 9) % 2 == 0 ? Timber.Light : Timber.Base);
                     }
-                    else if (timberOnly) { if (depth <= 2) Blend(image, x, y, SiteTimber.Shade); }
-                    else if (row % 6 == 0) Blend(image, x, y, SiteTimber.Shade);
+                    else if (timberOnly) { if (depth <= 2) Blend(image, x, y, Timber.Shade); }
+                    else if (row % 6 == 0) Blend(image, x, y, Timber.Shade);
                 }
             if (!timberOnly) Posts(image, s, b, InDoorGap);
             if (stage < 3) return;
@@ -289,7 +294,7 @@ public static partial class BuildingSprites
                     {
                         // Open rafters over the dark interior.
                         var across = horizontalDoor ? x : y;
-                        Blend(image, x, y, across % 4 == 0 ? SiteTimber.Base : across % 4 == 1 ? SiteTimber.Light : new Color(SiteSoot, 0.55f));
+                        Blend(image, x, y, across % 4 == 0 ? Timber.Base : across % 4 == 1 ? Timber.Light : new Color(SiteSoot, 0.55f));
                     }
                 }
             if (!timberOnly) Ladder(image, s, b);
@@ -303,9 +308,9 @@ public static partial class BuildingSprites
             {
                 if (!In(mask, x, y) || inDoorGap(x, y) || inDoorGap(x + 2, y + 2)) return;
                 Rect(image, x + 1, y + 1, 3, 3, SiteShadow);
-                Rect(image, x, y, 3, 3, SiteTimber.Edge);
-                Rect(image, x, y, 2, 2, SiteTimber.Base);
-                Blend(image, x, y, SiteTimber.Highlight);
+                Rect(image, x, y, 3, 3, Timber.Edge);
+                Rect(image, x, y, 2, 2, Timber.Base);
+                Blend(image, x, y, Timber.Highlight);
             }
             for (var x = b.Position.X; x <= b.End.X - 3; x += 10) { Post(x, b.Position.Y); Post(x, b.End.Y - 3); }
             for (var y = b.Position.Y + 10; y <= b.End.Y - 3; y += 10) { Post(b.Position.X, y); Post(b.End.X - 3, y); }
@@ -323,10 +328,10 @@ public static partial class BuildingSprites
                 : (int)MathF.Round(Math.Clamp(s.DoorMiddle + 7, b.Position.Y + 2, b.End.Y - 6));
             for (var k = 0; k < 8; k++)
             {
-                Blend(image, x, y + k, SiteTimber.Light);
-                Blend(image, x + 3, y + k, SiteTimber.Base);
+                Blend(image, x, y + k, Timber.Light);
+                Blend(image, x + 3, y + k, Timber.Base);
                 Blend(image, x + 4, y + k, SiteShadow);
-                if (k % 2 == 1) { Blend(image, x + 1, y + k, SiteTimber.Highlight); Blend(image, x + 2, y + k, SiteTimber.Light); }
+                if (k % 2 == 1) { Blend(image, x + 1, y + k, Timber.Highlight); Blend(image, x + 2, y + k, Timber.Light); }
             }
         }
 
@@ -406,11 +411,11 @@ public static partial class BuildingSprites
             {
                 var ly = y + k * 2;
                 Rect(image, x + 1, ly + 3, 11, 1, SiteShadow);
-                Rect(image, x, ly, 11, 3, SiteTimber.Edge);
-                Rect(image, x, ly, 10, 2, SiteTimber.Base);
-                Rect(image, x, ly, 10, 1, SiteTimber.Light);
-                Rect(image, x + 9, ly, 2, 2, SiteTimber.Highlight);
-                Blend(image, x + 10, ly + 1, SiteTimber.Shade);
+                Rect(image, x, ly, 11, 3, Timber.Edge);
+                Rect(image, x, ly, 10, 2, Timber.Base);
+                Rect(image, x, ly, 10, 1, Timber.Light);
+                Rect(image, x + 9, ly, 2, 2, Timber.Highlight);
+                Blend(image, x + 10, ly + 1, Timber.Shade);
             }
         }
 
@@ -431,7 +436,7 @@ public static partial class BuildingSprites
                         var d = dx * dx + dy * dy;
                         if (d > r * r + 1) continue;
                         var rim = d > (r - 1) * (r - 1);
-                        Blend(image, cx + dx, cy + dy, rim ? (dx + dy < 0 ? SiteRock.Light : SiteRock.Edge) : dx + dy < 0 ? SiteRock.Highlight : SiteRock.Base);
+                        Blend(image, cx + dx, cy + dy, rim ? (dx + dy < 0 ? Rock.Light : Rock.Edge) : dx + dy < 0 ? Rock.Highlight : Rock.Base);
                     }
             }
             Stone(x + 2, y + 2, 2);
@@ -600,16 +605,9 @@ public static partial class BuildingSprites
     /// </summary>
     private static class Neglect
     {
-        private readonly record struct NeglectRamp(Color Edge, Color Shade, Color Base, Color Light, Color Highlight);
-
-        private static readonly NeglectRamp NeglectTimber = new(new("3F2A1A"), new("6E4E31"), new("8A6440"), new("A77C52"), new("D2AC77"));
-        private static readonly NeglectRamp NeglectLeaf = new(new("3C5F2E"), new("4C7A3A"), new("5E8C45"), new("79A657"), new("9BC66F"));
         private static readonly Color NeglectSoot = new("2A2622");
         private static readonly Color NeglectFlower = new("F2CC5E");
         private static readonly Color NeglectShadow = new(0.05f, 0.08f, 0.05f, 0.28f);
-
-        /// <summary>What part of a building weathers and how it breaks.</summary>
-        private enum Shape { Building, Fence, Pier, Bridge, Lantern }
 
         /// <summary>One building's picture and the structure inside it that weathers.</summary>
         private sealed record Look(Image Finished, bool[,] Mask, int Width, int Height, DoorSide Door, float DoorMiddle, Shape Kind, bool Doorway, int Salt);
@@ -617,30 +615,9 @@ public static partial class BuildingSprites
         /// <summary>The weathered 32 px picture of one building.</summary>
         public static Image Draw(BuildingKind kind, int tilesWide, int tilesHigh, BuildingDoor door, bool ruin)
         {
-            var finished = Render(kind, tilesWide, tilesHigh, 32, door);
-            var w = tilesWide * 32;
-            var h = tilesHigh * 32;
-            var mask = new bool[w, h];
-            var plan = Plan(kind, tilesWide, tilesHigh, door);
-            var roofed = kind != BuildingKind.Port && ApprovedArt.PlanFor(kind, tilesWide, tilesHigh, door, 32) is not null;
-            var shape = kind switch
-            {
-                BuildingKind.Port => Shape.Pier,
-                BuildingKind.AnimalYard => Shape.Fence,
-                _ => Shape.Building,
-            };
-            for (var y = 0; y < h; y++)
-                for (var x = 0; x < w; x++)
-                {
-                    if (roofed)
-                        mask[x, y] = Inside(plan.Roof, x, y) || plan.Wing is { } wing && Inside(wing, x, y);
-                    else
-                        // A yard weathers only its fence, five units in from the footprint's edge.
-                        mask[x, y] = finished.GetPixel(x, y).A > 0.9f &&
-                            (shape != Shape.Fence || x < 6 || y < 6 || x >= w - 6 || y >= h - 6);
-                }
+            var (finished, mask, w, h, doorMiddle, shape, roofed) = PrepareStructure(kind, tilesWide, tilesHigh, door);
             var doorway = roofed || kind == BuildingKind.Silo;
-            return Apply(new Look(finished, mask, w, h, door.Side, plan.DoorMiddle, shape, doorway, NeglectSalt(kind, tilesWide, tilesHigh)), ruin);
+            return Apply(new Look(finished, mask, w, h, door.Side, doorMiddle, shape, doorway, NeglectSalt(kind, tilesWide, tilesHigh)), ruin);
         }
 
         /// <summary>
@@ -699,10 +676,6 @@ public static partial class BuildingSprites
             : inward.Y > 0 ? new(16, 9)
             : new(16, 25);
 
-        private static bool Inside(Rect2 area, int x, int y) =>
-            x >= (int)MathF.Round(area.Position.X) && x < (int)MathF.Round(area.End.X) &&
-            y >= (int)MathF.Round(area.Position.Y) && y < (int)MathF.Round(area.End.Y);
-
         /// <summary>
         /// The neglected (A) or falling-apart (B) look over the building's own
         /// picture, transparent outside the structure and its weeds. Blended
@@ -739,7 +712,7 @@ public static partial class BuildingSprites
                     {
                         if (!In(mask, cx + dx, cy + dy) || Hash(cx + dx, cy + dy, salt) % 3 == 0) continue;
                         var c = art.GetPixel(cx + dx, cy + dy);
-                        art.SetPixel(cx + dx, cy + dy, PixelArt.Snap(c.Lerp((dx + dy) < 0 ? NeglectLeaf.Base : NeglectLeaf.Shade, 0.75f) with { A = c.A }));
+                        art.SetPixel(cx + dx, cy + dy, PixelArt.Snap(c.Lerp((dx + dy) < 0 ? OrchardCanopy.Base : OrchardCanopy.Shade, 0.75f) with { A = c.A }));
                     }
             }
 
@@ -787,8 +760,8 @@ public static partial class BuildingSprites
                     if (d > ragged) continue;
                     var across = horizontal ? x : y;
                     var broken = Hash(across, (horizontal ? y : x) / 3, salt) % 4 == 0;
-                    var color = d > ragged - 0.18f ? NeglectTimber.Edge
-                        : across % 4 == 0 && !broken ? NeglectTimber.Shade
+                    var color = d > ragged - 0.18f ? Timber.Edge
+                        : across % 4 == 0 && !broken ? Timber.Shade
                         : NeglectSoot;
                     art.SetPixel(x, y, color);
                 }
@@ -825,13 +798,13 @@ public static partial class BuildingSprites
             if (y + 3 >= image.GetHeight()) y = b.End.Y - 2;
             for (var k = 0; k < 7; k++)
             {
-                Blend(image, x + k, y + k / 3, NeglectTimber.Base);
-                Blend(image, x + k, y + k / 3 - 1, NeglectTimber.Light);
+                Blend(image, x + k, y + k / 3, Timber.Base);
+                Blend(image, x + k, y + k / 3 - 1, Timber.Light);
                 Blend(image, x + k + 1, y + k / 3 + 1, NeglectShadow);
             }
             for (var k = 0; k < 5; k++)
             {
-                Blend(image, x - 3 + k, y + 2, NeglectTimber.Shade);
+                Blend(image, x - 3 + k, y + 2, Timber.Shade);
                 Blend(image, x - 3 + k, y + 3, NeglectShadow);
             }
         }
@@ -871,10 +844,10 @@ public static partial class BuildingSprites
                     }
                     if (Hash(x, y, salt + 21) % (onPath && near > 4 ? pathOdds : odds) != 0) continue;
                     var tall = Hash(y, x, salt) % 2 == 0;
-                    Blend(image, x, y, NeglectLeaf.Base);
-                    Blend(image, x + 1, y, NeglectLeaf.Shade);
-                    Blend(image, x, y - 1, NeglectLeaf.Light);
-                    if (tall) Blend(image, x, y - 2, ruin && Hash(x, y, 4) % 9 == 0 ? NeglectFlower : NeglectLeaf.Highlight);
+                    Blend(image, x, y, OrchardCanopy.Base);
+                    Blend(image, x + 1, y, OrchardCanopy.Shade);
+                    Blend(image, x, y - 1, OrchardCanopy.Light);
+                    if (tall) Blend(image, x, y - 2, ruin && Hash(x, y, 4) % 9 == 0 ? NeglectFlower : OrchardCanopy.Highlight);
                 }
         }
 
@@ -910,8 +883,8 @@ public static partial class BuildingSprites
                 var down = y + k * 5 / 8;
                 var up = y + 4 - k * 5 / 8;
                 Blend(image, x + k + 1, down + 1, NeglectShadow);
-                Blend(image, x + k, down, NeglectTimber.Highlight);
-                Blend(image, x + k, up, NeglectTimber.Light);
+                Blend(image, x + k, down, Timber.Highlight);
+                Blend(image, x + k, up, Timber.Light);
             }
             Blend(image, x, y, NeglectSoot);
             Blend(image, x + 7, y + 4, NeglectSoot);
@@ -941,9 +914,9 @@ public static partial class BuildingSprites
                     var lobe = 10 + (int)(Hash(x + dx, y + dy, salt) % 4);
                     if (d > lobe) continue;
                     var rim = d > lobe - 5;
-                    Blend(image, x + dx, y + dy, rim ? (dx + dy < 0 ? NeglectLeaf.Base : NeglectLeaf.Edge) : dx + dy < -1 ? NeglectLeaf.Light : NeglectLeaf.Base);
+                    Blend(image, x + dx, y + dy, rim ? (dx + dy < 0 ? OrchardCanopy.Base : OrchardCanopy.Edge) : dx + dy < -1 ? OrchardCanopy.Light : OrchardCanopy.Base);
                 }
-            Blend(image, x - 1, y - 2, NeglectLeaf.Highlight);
+            Blend(image, x - 1, y - 2, OrchardCanopy.Highlight);
         }
     }
 }

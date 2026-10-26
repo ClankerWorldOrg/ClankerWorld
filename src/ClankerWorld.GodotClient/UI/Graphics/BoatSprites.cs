@@ -13,9 +13,6 @@ public static class BoatSprites
     private static readonly Dictionary<(int Facing, bool Rowing, int Size), Texture2D> Textures = [];
     private static readonly Facing[] Facings =
         [Facing.South, Facing.SouthWest, Facing.West, Facing.NorthWest, Facing.North, Facing.NorthEast, Facing.East, Facing.SouthEast];
-    private static readonly Ramp Timber = Ramp.Of("3F2A1A", "6E4E31", "8A6440", "A77C52", "D2AC77");
-    private static readonly Ramp Iron = Ramp.Of("3E3A37", "524C48", "6C6560", "8A827C", "A69E98");
-    private static readonly Ramp River = Ramp.Of("2F5A75", "3B7294", "4786AB", "5695B8", "7FB4CF");
     private static readonly Color SmallShadow = new(0.05f, 0.08f, 0.05f, 0.28f);
 
     /// <summary>The boat at 32 px, or its approved 16 px drawing for sizes below 24 px.</summary>

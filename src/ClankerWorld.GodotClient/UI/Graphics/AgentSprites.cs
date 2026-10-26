@@ -1,4 +1,5 @@
 using Godot;
+using static ClankerWorld.GodotClient.UI.SpriteDrawing;
 using Painter = ClankerWorld.GodotClient.UI.SpritePainter;
 
 namespace ClankerWorld.GodotClient.UI;
@@ -118,19 +119,8 @@ public static class AgentSprites
     private static readonly Color ElderHair = new("D9D6CF");
     private static readonly Color Outline = new("1E2226");
     private static readonly Color Shadow = new(0.05f, 0.08f, 0.05f, 0.28f);
-    private static readonly Color TimberEdge = new("3F2A1A");
-    private static readonly Color TimberShade = new("6E4E31");
-    private static readonly Color TimberBase = new("8A6440");
-    private static readonly Color TimberLight = new("A77C52");
-    private static readonly Color TimberHighlight = new("D2AC77");
-    private static readonly Color ClothShade = new("CABC99");
-    private static readonly Color ClothLight = new("E8DCC0");
-    private static readonly Color ClothHighlight = new("FFF5DF");
     private static readonly Color BlanketBase = new("E9E1CF");
     private static readonly Color BlanketFold = new("CFC5AE");
-    private static readonly Color IronShade = new("524C48");
-    private static readonly Color IronBase = new("6C6560");
-    private static readonly Color IronHighlight = new("A69E98");
     // Dark trousers show only mid-step, between the shirt and a boot.
     private static readonly Color Trousers = new("4A4E55");
 
@@ -565,11 +555,11 @@ public static class AgentSprites
         if (small)
         {
             paint.Oval(at, d, b.FootAlong + 0.6f, b.FootAcross + 0.4f, Outline);
-            paint.Dot(at + d * 0.5f, TimberShade);
+            paint.Dot(at + d * 0.5f, Timber.Shade);
             return;
         }
         paint.Oval(at, d, b.FootAlong + 0.85f, b.FootAcross + 0.85f, Outline);
-        paint.Oval(at, d, b.FootAlong, b.FootAcross, TimberShade);
+        paint.Oval(at, d, b.FootAlong, b.FootAcross, Timber.Shade);
     }
 
     /// <summary>
@@ -650,15 +640,15 @@ public static class AgentSprites
         var s = Side(d);
         var halfAlong = 3f * p;
         var halfAcross = 4f * p;
-        paint.Box(at, d, halfAlong + 1, halfAcross + 1, TimberEdge);
-        paint.Box(at, d, halfAlong, halfAcross, TimberBase);
+        paint.Box(at, d, halfAlong + 1, halfAcross + 1, Timber.Edge);
+        paint.Box(at, d, halfAlong, halfAcross, Timber.Base);
         // Lit north-west rim, shaded south-east, a plank seam across the lid.
-        paint.Box(at, d, halfAlong, halfAcross, TimberLight, (q, _, _) => q.Dot(TowardLight) > 2.2f * p);
-        paint.Box(at, d, halfAlong, halfAcross, TimberShade, (q, _, _) => q.Dot(TowardLight) < -2.6f * p);
+        paint.Box(at, d, halfAlong, halfAcross, Timber.Light, (q, _, _) => q.Dot(TowardLight) > 2.2f * p);
+        paint.Box(at, d, halfAlong, halfAcross, Timber.Shade, (q, _, _) => q.Dot(TowardLight) < -2.6f * p);
         if (p >= 0.7f)
         {
-            paint.Line(at - s * (halfAcross - 0.5f) - d * 0.5f, at + s * (halfAcross - 0.5f) - d * 0.5f, TimberShade);
-            paint.Dot(at + TowardLight * 3.2f, TimberHighlight);
+            paint.Line(at - s * (halfAcross - 0.5f) - d * 0.5f, at + s * (halfAcross - 0.5f) - d * 0.5f, Timber.Shade);
+            paint.Dot(at + TowardLight * 3.2f, Timber.Highlight);
         }
     }
 
@@ -679,11 +669,11 @@ public static class AgentSprites
         }
         paint.Line(hand + swing * 0.8f + across * 0.5f, tip + across * 0.5f, Outline);
         paint.Line(hand + swing * 0.8f - across * 0.5f, tip - across * 0.5f, Outline);
-        paint.Line(hand + swing * 0.8f, tip, TimberLight);
+        paint.Line(hand + swing * 0.8f, tip, Timber.Light);
         paint.Box(tip, swing, 1.1f * p + 0.9f, 3.6f * p + 0.9f, Outline);
-        paint.Box(tip, swing, 1.1f * p, 3.6f * p, IronBase);
-        paint.Box(tip, swing, 1.1f * p, 3.6f * p, IronShade, (q, _, _) => q.Dot(TowardLight) < -1.0f);
-        paint.Dot(tip + TowardLight * 1.2f, IronHighlight);
+        paint.Box(tip, swing, 1.1f * p, 3.6f * p, Iron.Base);
+        paint.Box(tip, swing, 1.1f * p, 3.6f * p, Iron.Shade, (q, _, _) => q.Dot(TowardLight) < -1.0f);
+        paint.Dot(tip + TowardLight * 1.2f, Iron.Highlight);
     }
 
     /// <summary>
@@ -698,13 +688,13 @@ public static class AgentSprites
         var tip = hand + d * (small ? 1.5f : 3.0f * p) + outward * (small ? 0.5f : 1.5f * p) + ground;
         if (small)
         {
-            paint.Line(hand, tip, TimberEdge);
+            paint.Line(hand, tip, Timber.Edge);
             return;
         }
         var top = hand - (tip - hand).Normalized() * 2.0f;
-        paint.Line(top, tip, TimberEdge);
-        paint.Dot(top - outward * 1.0f, TimberEdge);   // the crook
-        paint.Dot(tip, TimberLight);
+        paint.Line(top, tip, Timber.Edge);
+        paint.Dot(top - outward * 1.0f, Timber.Edge);   // the crook
+        paint.Dot(tip, Timber.Light);
     }
 
     /// <summary>A cream bandage wrapped across the crown, ear to ear, with a knot on one side.</summary>
@@ -714,14 +704,14 @@ public static class AgentSprites
         var band = h - d * (small ? 0.2f : 0.6f);
         var half = small ? 0.55f : 1.2f;   // one pixel row at 16 px
         bool OnHead(Vector2 q, float t, float u) => (q + (band - h)).Length() <= r + 0.25f;
-        paint.Box(band, d, half, r + 1, ClothHighlight, OnHead);
+        paint.Box(band, d, half, r + 1, Cloth.Highlight, OnHead);
         if (small) return;
-        paint.Box(band, d, half, r + 1, ClothShade, (q, t, u) => OnHead(q, t, u) && q.Dot(TowardLight) < -2.5f);
+        paint.Box(band, d, half, r + 1, Cloth.Base, (q, t, u) => OnHead(q, t, u) && q.Dot(TowardLight) < -2.5f);
         // The knot: two short tails off the figure's left side of the head.
         var knot = band - s * (r + 0.4f);
-        paint.Dot(knot, ClothLight);
-        paint.Dot(knot - s * 1f - d * 1f, ClothLight);
-        paint.Dot(knot - s * 1f + d * 1f, ClothShade);
+        paint.Dot(knot, Cloth.Light);
+        paint.Dot(knot - s * 1f - d * 1f, Cloth.Light);
+        paint.Dot(knot - s * 1f + d * 1f, Cloth.Base);
     }
 
     /// <summary>A 5 × 4 speech mark off the head to the north-east, with a one-pixel tail toward the head.</summary>
@@ -731,21 +721,21 @@ public static class AgentSprites
         {
             var at16 = h + new Vector2(r + 1.5f, -r - 1.0f);
             paint.Rect(at16.X - 1, at16.Y - 1, 4, 3, Outline);
-            paint.Rect(at16.X, at16.Y, 2, 1, ClothHighlight);
+            paint.Rect(at16.X, at16.Y, 2, 1, Cloth.Highlight);
             return;
         }
         var x = (int)MathF.Floor(h.X + r + 1.5f);
         var y = (int)MathF.Floor(h.Y - r - 4.5f);
         paint.Rect(x, y, 7, 6, Outline);
-        paint.Rect(x + 1, y + 1, 5, 4, ClothHighlight);
+        paint.Rect(x + 1, y + 1, 5, 4, Cloth.Highlight);
         paint.Pixel(x, y, Colors.Transparent);
         paint.Pixel(x + 6, y, Colors.Transparent);
         paint.Pixel(x + 6, y + 5, Colors.Transparent);
-        paint.Pixel(x + 1, y + 1, ClothLight);
+        paint.Pixel(x + 1, y + 1, Cloth.Light);
         paint.Pixel(x - 1, y + 6, Outline);            // tail toward the head
         paint.Pixel(x, y + 5, Outline);
-        paint.Pixel(x + 2, y + 2, Outline.Lerp(ClothHighlight, 0.2f));
-        paint.Pixel(x + 4, y + 2, Outline.Lerp(ClothHighlight, 0.2f));
+        paint.Pixel(x + 2, y + 2, Outline.Lerp(Cloth.Highlight, 0.2f));
+        paint.Pixel(x + 4, y + 2, Outline.Lerp(Cloth.Highlight, 0.2f));
     }
 
     /// <summary>
@@ -766,7 +756,7 @@ public static class AgentSprites
         if (!small)
         {
             paint.Oval(c, d, along, across, BlanketFold, (q, _, _) => !Painter.InOval(q + TowardLight * -1.5f, d, along, across));
-            paint.Oval(c, d, along, across, ClothHighlight, (q, _, _) => !Painter.InOval(q + TowardLight * 1.2f, d, along, across));
+            paint.Oval(c, d, along, across, Cloth.Highlight, (q, _, _) => !Painter.InOval(q + TowardLight * 1.2f, d, along, across));
             // The swaddle band across the middle and a fold toward the feet end.
             paint.Box(c + d * 1.5f, d, 0.9f, across, BlanketFold, (q, t, u) => Painter.InOval(q + d * 1.5f, d, along, across));
             paint.Line(c + d * 4.5f - s * 3f, c + d * 6.5f + s * 1.5f, BlanketFold);

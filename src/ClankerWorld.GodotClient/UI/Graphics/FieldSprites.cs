@@ -1,4 +1,5 @@
 using Godot;
+using static ClankerWorld.GodotClient.UI.SpriteDrawing;
 
 namespace ClankerWorld.GodotClient.UI;
 
@@ -47,17 +48,6 @@ public static class FieldSprites
     private static readonly Dictionary<(FieldCrop, FieldGrowth, int), Image> Images = [];
     private static readonly Dictionary<(FieldCrop, FieldGrowth, int), ImageTexture> Textures = [];
     private static readonly Dictionary<(FieldCrop, FieldGrowth), Color> OverviewColors = [];
-
-    /// <summary>One colour ramp from the style guide, darkest to brightest.</summary>
-    private readonly record struct Ramp(Color Edge, Color Shade, Color Base, Color Light, Color Highlight)
-    {
-        public static Ramp Of(string edge, string shade, string @base, string light, string highlight) =>
-            new(new Color(edge), new Color(shade), new Color(@base), new Color(light), new Color(highlight));
-    }
-
-    private static readonly Ramp Soil = Ramp.Of("4A3A2A", "5C4B35", "735F45", "86704F", "9A8460");
-    private static readonly Ramp Thatch = Ramp.Of("6B5528", "A98A45", "D2AE5E", "E6C77B", "F0DA9A");
-    private static readonly Ramp Canopy = Ramp.Of("2E4A2A", "476B36", "557D3E", "6C9A4B", "8DB660");
 
     /// <summary>Sown seed is Timber light; the heart and veins of a greens rosette are Cloth light.</summary>
     private static readonly Color Seed = new("A77C52");

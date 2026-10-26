@@ -5,6 +5,27 @@ namespace ClankerWorld.GodotClient.UI;
 /// <summary>Shared palettes, shadow masks and snapped image plates. Transparent plate input leaves pixels unchanged.</summary>
 internal static class SpriteDrawing
 {
+    // Shared steps from the approved art palette; art-specific variants stay with their drawings.
+    internal static readonly Ramp Timber = Ramp.Of("3F2A1A", "6E4E31", "8A6440", "A77C52", "D2AC77");
+    internal static readonly Ramp Rock = Ramp.Of("4A4542", "625B56", "756D68", "8B837D", "A49C95");
+    internal static readonly Ramp Dirt = Ramp.Of("6E5538", "977852", "B99A6B", "C9AC7C", "D9C08F");
+    internal static readonly Ramp OrchardCanopy = Ramp.Of("3C5F2E", "4C7A3A", "5E8C45", "79A657", "9BC66F");
+    internal static readonly Ramp Fruit = Ramp.Of("9A4E1E", "C8702E", "E0893F", "F6C27A", "FFE0A8");
+    internal static readonly Ramp Thatch = Ramp.Of("6B5528", "A98A45", "D2AE5E", "E6C77B", "F0DA9A");
+    internal static readonly Ramp ClayTile = Ramp.Of("5E2E22", "9E4E34", "C66A45", "E08E64", "EFA982");
+    internal static readonly Ramp Slate = Ramp.Of("2B2E33", "4A4E55", "62666E", "80858E", "9A9FA7");
+    internal static readonly Ramp GreyTimber = Ramp.Of("343C43", "59656F", "758390", "97A5B0", "AEBBC4");
+    internal static readonly Ramp Doorstep = Ramp.Of("5F5848", "8C7F66", "B9AB8E", "C9BDA2", "DED3BC");
+    internal static readonly Ramp Iron = Ramp.Of("3E3A37", "524C48", "6C6560", "8A827C", "A69E98");
+    internal static readonly Ramp Cloth = Ramp.Of("75674D", "A09170", "CABC99", "E8DCC0", "FFF5DF");
+    internal static readonly Ramp Gold = Ramp.Of("8A6A1E", "B8902E", "D9AE3C", "F2CC5E", "FFE28A");
+    internal static readonly Ramp Berry = Ramp.Of("7A2A2E", "A33A3F", "C4474B", "F08A8A", "FFC2C2");
+    internal static readonly Ramp River = Ramp.Of("2F5A75", "3B7294", "4786AB", "5695B8", "7FB4CF");
+    internal static readonly Ramp Conifer = Ramp.Of("1F3E31", "2F5B45", "3F7358", "5E9278", "86B89A");
+    internal static readonly Ramp Soil = Ramp.Of("4A3A2A", "5C4B35", "735F45", "86704F", "9A8460");
+    internal static readonly Ramp Canopy = Ramp.Of("2E4A2A", "476B36", "557D3E", "6C9A4B", "8DB660");
+    internal static readonly Ramp ForestGrass = Ramp.Of("2E4D35", "395F41", "426D4B", "4E7D56", "5E8E64");
+
     internal readonly record struct Ramp(Color Edge, Color Shade, Color Base, Color Light, Color Highlight)
     {
         public static Ramp Of(string edge, string shade, string @base, string light, string highlight) =>
@@ -19,6 +40,43 @@ internal static class SpriteDrawing
             3 => Light,
             _ => Highlight,
         };
+    }
+
+    /// <summary>
+    /// A cloth sack lying on its side along the x or y axis: a long rounded
+    /// body, lit north-west, with its neck tied off in twine at the west or
+    /// north end and the tuft flaring past it. Drawn at 32 px only.
+    /// </summary>
+    internal static void LyingSack(Plate p, float cx, float cy, bool alongX, Ramp cloth, Ramp timber, Color shadow)
+    {
+        var (rx, ry) = alongX ? (3.5f, 2.5f) : (2.5f, 3.5f);
+        p.Ellipse(cx + 1, cy + 1.5f, rx, ry, shadow);
+        p.Ellipse(cx, cy, rx, ry, cloth.Edge);
+        p.Ellipse(cx + 0.4f, cy + 0.4f, rx - 0.9f, ry - 0.9f, cloth.Shade);
+        p.Ellipse(cx - 0.3f, cy - 0.3f, rx - 1.2f, ry - 1.2f, cloth.Base);
+        p.Ellipse(cx - 1, cy - 1, 0.9f, 0.9f, cloth.Light);
+        // A fold across the body where the cloth sags, and the neck tied off.
+        var (x, y) = ((int)cx, (int)cy);
+        if (alongX) p.Put(x + 1, y, cloth.Shade);
+        else p.Put(x, y + 1, cloth.Shade);
+        if (alongX)
+        {
+            var end = (int)(cx - rx);
+            p.Put(end, y, timber.Shade);
+            p.Put(end - 1, y, cloth.Light);
+            p.Put(end - 2, y - 1, cloth.Edge);
+            p.Put(end - 2, y, cloth.Base);
+            p.Put(end - 2, y + 1, cloth.Edge);
+        }
+        else
+        {
+            var end = (int)(cy - ry);
+            p.Put(x, end, timber.Shade);
+            p.Put(x, end - 1, cloth.Light);
+            p.Put(x - 1, end - 2, cloth.Edge);
+            p.Put(x, end - 2, cloth.Base);
+            p.Put(x + 1, end - 2, cloth.Edge);
+        }
     }
 
     internal sealed class ShadowMask(int width, int height)
@@ -95,17 +153,8 @@ internal static class SpriteDrawing
         /// <summary>An ellipse in tile units, covering the same pixels as <see cref="PixelCanvas.Ellipse"/>.</summary>
         public void Ellipse(float centerX, float centerY, float radiusX, float radiusY, Color color)
         {
-            var cx = centerX * Scale;
-            var cy = centerY * Scale;
-            var rx = Math.Max(0.6f, radiusX * Scale);
-            var ry = Math.Max(0.6f, radiusY * Scale);
-            for (var y = (int)(cy - ry - 1); y <= (int)(cy + ry + 1); y++)
-                for (var x = (int)(cx - rx - 1); x <= (int)(cx + rx + 1); x++)
-                {
-                    var dx = (x + 0.5f - cx) / rx;
-                    var dy = (y + 0.5f - cy) / ry;
-                    if (dx * dx + dy * dy <= 1f) Put(x, y, color);
-                }
+            if (color.A <= 0) return;
+            Canvas.Ellipse(centerX, centerY, radiusX, radiusY, color);
         }
 
         /// <summary>A one-pixel line in tile units, in an opaque colour.</summary>

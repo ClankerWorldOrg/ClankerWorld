@@ -100,7 +100,7 @@ public static partial class BuildingSprites
             {
                 if (kind == BuildingKind.Market)
                 {
-                    var frame = new MarketFrame(Opposite(door.Side), w, h);
+                    var frame = new PortFrame(Opposite(door.Side), w, h);
                     var hall = plate.Px(frame.Map(3, 3, frame.Breadth - 6, frame.Length - 21));
                     var arcade = plate.Px(frame.Map(4, frame.Length - 19, frame.Breadth - 8, 12));
                     var shadow = new Rect2I(hall.Position.X + plate.P(2), hall.Position.Y + plate.P(3), hall.Size.X, hall.Size.Y);

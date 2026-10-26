@@ -1,4 +1,5 @@
 using Godot;
+using static ClankerWorld.GodotClient.UI.SpriteDrawing;
 using Build = ClankerWorld.GodotClient.UI.AgentSprites.Build;
 
 namespace ClankerWorld.GodotClient.UI;
@@ -94,11 +95,6 @@ public static class AnimalSprites
     private static readonly Color Shadow = new(0.05f, 0.08f, 0.05f, 0.28f);   // L2 sprite shadow
 
     // Horse colours, exactly as approved: the Timber ramp, Hair 1 mane, Cloth light blaze.
-    private static readonly Color TimberEdge = new("3F2A1A");
-    private static readonly Color TimberShade = new("6E4E31");
-    private static readonly Color TimberBase = new("8A6440");
-    private static readonly Color TimberLight = new("A77C52");
-    private static readonly Color ClothLight = new("E8DCC0");
     private static readonly Color ManeColor = new("6B4226");
 
     /// <summary>A fill colour with the darker step used on its south-east rim and the lighter one on its north-west rim.</summary>
@@ -486,18 +482,18 @@ public static class AnimalSprites
         bool InTail(Vector2 point) => Painter.InOval(point - (tailRoot + tailTip) / 2, tailAxis, 2.6f * p, 1.4f * p);
         paint.Silhouette(InTail, Outline, ManeColor, ManeColor.Darkened(0.25f), ManeColor.Lightened(0.15f), 1.2f, 1.0f);
 
-        paint.Silhouette(InBody, Outline, TimberBase, TimberShade, TimberLight, 1.6f, 1.3f, dropSpurs: diagonal);
+        paint.Silhouette(InBody, Outline, Timber.Base, Timber.Shade, Timber.Light, 1.6f, 1.3f, dropSpurs: diagonal);
 
         // Head: darker muzzle with nostrils, a pale blaze down the face, inner ears.
-        paint.Oval(At(14.0f), d, 1.4f * p, 1.9f * p, TimberShade, (q, _, _) => InBody(q + At(14.0f)));
-        paint.Dot(At(14.4f, -0.8f), TimberEdge);
-        paint.Dot(At(14.4f, 0.8f), TimberEdge);
+        paint.Oval(At(14.0f), d, 1.4f * p, 1.9f * p, Timber.Shade, (q, _, _) => InBody(q + At(14.0f)));
+        paint.Dot(At(14.4f, -0.8f), Timber.Edge);
+        paint.Dot(At(14.4f, 0.8f), Timber.Edge);
         if (diagonal)
-            paint.Run(At(13.0f), -forwardStep, 2, ClothLight);   // the same blaze as a clean 45° line
+            paint.Run(At(13.0f), -forwardStep, 2, Cloth.Light);   // the same blaze as a clean 45° line
         else
-            paint.Line(At(10.6f), At(13.0f), ClothLight);
-        paint.Dot(At(8.9f, -2.5f), TimberShade);
-        paint.Dot(At(8.9f, 2.5f), TimberShade);
+            paint.Line(At(10.6f), At(13.0f), Cloth.Light);
+        paint.Dot(At(8.9f, -2.5f), Timber.Shade);
+        paint.Dot(At(8.9f, 2.5f), Timber.Shade);
 
         // Mane: down the middle of the neck from a forelock between the ears to the withers.
         paint.Box(At(5.9f, 0.4f), d, 3.4f * p, 1.0f * p, ManeColor);
@@ -512,15 +508,15 @@ public static class AnimalSprites
             // Turned 45°, the seat is traced pixel by pixel so its rim stays unbroken; a
             // staircase rim is heavier, so the seat is half a pixel larger to keep its middle.
             bool InSeat(Vector2 q) => MathF.Abs((q - seat).Dot(d)) <= 3.4f * p && MathF.Abs((q - seat).Dot(s)) <= 3.9f * p;
-            paint.Plate(InSeat, TimberEdge, q => (q - seat).Dot(TowardLight) > 1.6f * p ? TimberBase : TimberShade);
+            paint.Plate(InSeat, Timber.Edge, q => (q - seat).Dot(TowardLight) > 1.6f * p ? Timber.Base : Timber.Shade);
         }
         else
         {
-            paint.Box(seat, d, 3.0f * p, 3.5f * p, TimberEdge, (q, t, u) => MathF.Abs(t) < 2.6f * p || MathF.Abs(u) < 3.1f * p);
-            paint.Box(seat, d, 2.0f * p, 2.5f * p, TimberShade);
-            paint.Box(seat, d, 2.0f * p, 2.5f * p, TimberBase, (q, _, _) => q.Dot(TowardLight) > 1.2f * p);
+            paint.Box(seat, d, 3.0f * p, 3.5f * p, Timber.Edge, (q, t, u) => MathF.Abs(t) < 2.6f * p || MathF.Abs(u) < 3.1f * p);
+            paint.Box(seat, d, 2.0f * p, 2.5f * p, Timber.Shade);
+            paint.Box(seat, d, 2.0f * p, 2.5f * p, Timber.Base, (q, _, _) => q.Dot(TowardLight) > 1.2f * p);
         }
-        paint.Dot(At(1.6f), TimberLight);
+        paint.Dot(At(1.6f), Timber.Light);
 
         if (!rider) return image;
 
@@ -533,12 +529,12 @@ public static class AnimalSprites
         {
             var boot = At(1.6f, side * bootOut);
             paint.Oval(boot, d, 1.8f * p + 0.85f, 1.3f * p + 0.85f, Outline);
-            paint.Oval(boot, d, 1.8f * p, 1.3f * p, TimberShade);
+            paint.Oval(boot, d, 1.8f * p, 1.3f * p, Timber.Shade);
         }
         // Reins from the hands to the bridle at the back of the head.
         var hands = build.Center + d * (build.ShoulderAlong + 1.2f * p);
-        paint.Line(hands - s * (build.HandAt * ReinGrip), At(10.2f, -2.4f), TimberEdge);
-        paint.Line(hands + s * (build.HandAt * ReinGrip), At(10.2f, 2.4f), TimberEdge);
+        paint.Line(hands - s * (build.HandAt * ReinGrip), At(10.2f, -2.4f), Timber.Edge);
+        paint.Line(hands + s * (build.HandAt * ReinGrip), At(10.2f, 2.4f), Timber.Edge);
         Rider(paint, build, facing, Skins[0], Hairs[0], Shirts[0]);
         return image;
     }
@@ -731,11 +727,11 @@ public static class AnimalSprites
         if (!small) paint.Silhouette(InTail, Outline, ManeColor, ManeColor.Darkened(0.25f), ManeColor.Lightened(0.15f), 1.0f, 0.8f);
         paint.Coat(InBody, Outline, _ => FoalCoat, small ? 0.8f : 1.3f, small ? 0.7f : 1.1f, dropSpurs: diagonal);
         if (small) return image;
-        paint.Oval(f.At(9.6f), f.Forward, 0.9f * f.Unit, 1.3f * f.Unit, TimberBase, (q, _, _) => InBody(q + f.At(9.6f)));
+        paint.Oval(f.At(9.6f), f.Forward, 0.9f * f.Unit, 1.3f * f.Unit, Timber.Base, (q, _, _) => InBody(q + f.At(9.6f)));
         if (diagonal)
-            paint.Run(f.At(8.8f), -forwardStep, 2, ClothLight);
+            paint.Run(f.At(8.8f), -forwardStep, 2, Cloth.Light);
         else
-            paint.Line(f.At(7.2f), f.At(8.8f), ClothLight);
+            paint.Line(f.At(7.2f), f.At(8.8f), Cloth.Light);
         paint.Box(f.At(4.4f, 0.3f), f.Forward, 2.0f * f.Unit, 0.7f * f.Unit, ManeColor);
         return image;
     }

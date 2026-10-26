@@ -7,8 +7,6 @@ public static partial class BuildingSprites
 {
     private static partial class ApprovedArt
     {
-        private static readonly Ramp MarketFruit = Ramp.Of("9A4E1E", "C8702E", "E0893F", "F6C27A", "FFE0A8");
-
         /// <summary>
         /// Round 3 Market: a timber market hall with no stalls inside it; the
         /// stalls stand outside on the approved packed-earth plaza. A
@@ -17,12 +15,12 @@ public static partial class BuildingSprites
         /// lower lean-to roof covers an open arcade, with a sign of trading
         /// scales over the way in and the doorstep and path beyond its eave. It
         /// is laid out once with the door "down" and turned to the door side by
-        /// <see cref="MarketFrame"/>; every piece is lit from the north-west.
+        /// <see cref="PortFrame"/>; every piece is lit from the north-west.
         /// </summary>
         private static void PaintMarket(Plate p, Recipe recipe, int w, int h, BuildingDoor door)
         {
             var side = door.Side;
-            var frame = new MarketFrame(Opposite(side), w, h);
+            var frame = new PortFrame(Opposite(side), w, h);
             float breadth = frame.Breadth, length = frame.Length;
             // The arcade's eave stands seven units in from the footprint edge, leaving room for the doorstep and path.
             const float front = 7, arcadeDepth = 12;
@@ -174,10 +172,7 @@ public static partial class BuildingSprites
                 p.Put(cx, cy, Gold.Shade);
                 return;
             }
-            p.Fill(cx - 3, cy - 3, 9, 8, SmallShadow);
-            p.Fill(cx - 4, cy - 4, 9, 8, Timber.Edge);
-            p.Fill(cx - 3, cy - 3, 7, 6, Cloth.Light);
-            p.Fill(cx - 3, cy - 3, 7, 1, Cloth.Highlight);
+            SignBoard(p, cx, cy);
             string[] scales =
             [
                 "...h...",
@@ -206,7 +201,7 @@ public static partial class BuildingSprites
         private static void PaintStallLot(Plate p, int w, int h, BuildingDoor door)
         {
             var area = new Rect2(4, 4, w - 8, h - 9);
-            Stall(p, area, door.Side, Berry, MarketFruit, 5);
+            Stall(p, area, door.Side, Berry, Fruit, 5);
             if (door.Tile is null) return;
             // The path runs from the crates to the footprint edge along the door axis.
             var middle = p.P(door.Tile.Value * 32 + 16);
@@ -235,7 +230,7 @@ public static partial class BuildingSprites
             Awning(p, p.Px(Orient(area, front, 0, 0, alongSize, awningDepth)), front, stripe);
             var crateDepth = Math.Min(5f, depthSize - awningDepth);
             var crates = new[] { 1f, 6f, alongSize - 11, alongSize - 6 };
-            var ramps = new[] { produce, Leaf, Berry, Gold };
+            var ramps = new[] { produce, OrchardCanopy, Berry, Gold };
             for (var i = 0; i < crates.Length; i++)
             {
                 if (crates[i] + 5 > alongSize) continue;
@@ -288,20 +283,6 @@ public static partial class BuildingSprites
             p.Put(x + 1, y, Gold.Shade);
         }
 
-        /// <summary>Maps the approved door-down layout into footprint units without rotating its lighting.</summary>
-        private readonly record struct MarketFrame(DoorSide Land, float Width, float Height)
-        {
-            public float Length => Land is DoorSide.North or DoorSide.South ? Height : Width;
-            public float Breadth => Land is DoorSide.North or DoorSide.South ? Width : Height;
-
-            public Rect2 Map(float across, float outward, float sizeAcross, float sizeOut) => Land switch
-            {
-                DoorSide.North => new Rect2(across, outward, sizeAcross, sizeOut),
-                DoorSide.South => new Rect2(across, Height - outward - sizeOut, sizeAcross, sizeOut),
-                DoorSide.West => new Rect2(outward, across, sizeOut, sizeAcross),
-                _ => new Rect2(Width - outward - sizeOut, across, sizeOut, sizeAcross),
-            };
-        }
         private static DoorSide PortLandSide(int tilesWide, int tilesHigh, DoorSide door) => tilesHigh >= tilesWide
             ? door == DoorSide.South ? DoorSide.South : DoorSide.North
             : door == DoorSide.West ? DoorSide.West : DoorSide.East;

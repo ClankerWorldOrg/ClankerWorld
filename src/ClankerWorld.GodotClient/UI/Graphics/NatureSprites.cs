@@ -1,4 +1,5 @@
 using Godot;
+using static ClankerWorld.GodotClient.UI.SpriteDrawing;
 
 namespace ClankerWorld.GodotClient.UI;
 
@@ -177,7 +178,7 @@ public static partial class NatureSprites
         if (season != LandscapeSeason.Summer)
         {
             var tinted = (Image)AtlasImage(size).Duplicate();
-            var ramps = new[] { Canopy, Needle, OrchardCanopy };
+            var ramps = new[] { Canopy, SpriteDrawing.Conifer, OrchardCanopy };
             var colours = ramps.SelectMany(ramp => new[] { ramp.Edge, ramp.Shade, ramp.Base, ramp.Light, ramp.Highlight })
                 .Distinct().ToDictionary(colour => colour, colour => LandscapePalette.Apply(colour, season));
             foreach (var sprite in new[] { NatureSprite.Broadleaf, NatureSprite.Conifer, NatureSprite.BroadleafSapling,
@@ -249,36 +250,13 @@ public static partial class NatureSprites
     // Approved art (first and second art reviews, 2026-10-01).
     // ----------------------------------------------------------------------
 
-    /// <summary>A five-step colour ramp from the art style guide: edge (outline), shade, base, light, highlight.</summary>
-    private readonly record struct Ramp(Color Edge, Color Shade, Color Base, Color Light, Color Highlight)
-    {
-        public static Ramp Of(string edge, string shade, string @base, string light, string highlight) =>
-            new(new Color(edge), new Color(shade), new Color(@base), new Color(light), new Color(highlight));
-    }
-
     // The bush uses the forest-grass ramp so it stays darker than a tree
     // canopy. The fibre plant keeps its earlier yellow-greens arranged as a
     // ramp with the grass edge for its dark side.
-    private static readonly Ramp Canopy = Ramp.Of("2E4A2A", "476B36", "557D3E", "6C9A4B", "8DB660");
-    private static readonly Ramp OrchardCanopy = Ramp.Of("3C5F2E", "4C7A3A", "5E8C45", "79A657", "9BC66F");
-    private static readonly Ramp Needle = Ramp.Of("1F3E31", "2F5B45", "3F7358", "5E9278", "86B89A");
-    private static readonly Ramp Bush = Ramp.Of("2E4D35", "395F41", "426D4B", "4E7D56", "5E8E64");
-    private static readonly Ramp Timber = Ramp.Of("3F2A1A", "6E4E31", "8A6440", "A77C52", "D2AC77");
-    private static readonly Ramp Rock = Ramp.Of("4A4542", "625B56", "756D68", "8B837D", "A49C95");
-    private static readonly Ramp Iron = Ramp.Of("3E3A37", "524C48", "6C6560", "8A827C", "A69E98");
     private static readonly Ramp Rust = Ramp.Of("7A4426", "A9643C", "B7774C", "C98A5A", "E0A070");
-    private static readonly Ramp Gold = Ramp.Of("8A6A1E", "B8902E", "D9AE3C", "F2CC5E", "FFE28A");
     private static readonly Ramp Clay = Ramp.Of("6A3020", "8E4428", "B8623C", "D5825A", "EFA882");
-    private static readonly Ramp Berry = Ramp.Of("7A2A2E", "A33A3F", "C4474B", "F08A8A", "FFC2C2");
     private static readonly Ramp Fiber = Ramp.Of("3B5E3A", "556E3C", "6E8A4B", "8FA863", "A8BE78");
-    private static readonly Ramp Fruit = Ramp.Of("9A4E1E", "C8702E", "E0893F", "F6C27A", "FFE0A8");
     private static readonly Ramp Diamond = Ramp.Of("3F7E86", "5FB4BE", "7FD3DC", "B4EEF2", "E8FFFF");
-
-    /// <summary>Host rock of the diamond outcrop: the style guide's Slate ramp, cool blue-grey to set off the pale crystals.</summary>
-    private static readonly Ramp Slate = Ramp.Of("2B2E33", "4A4E55", "62666E", "80858E", "9A9FA7");
-
-    /// <summary>The Fertile soil ramp, for loosened earth under a regrowing sprout and a bare depleted patch.</summary>
-    private static readonly Ramp Soil = Ramp.Of("4A3A2A", "5C4B35", "735F45", "86704F", "9A8460");
 
     /// <summary>
     /// Reed stems and blades: the earlier reeds' two olive greens as the base
@@ -324,7 +302,7 @@ public static partial class NatureSprites
         {
             case NatureSprite.Broadleaf: Broadleaf(layers); layers.Compose(Canopy.Edge); break;
             // At 16 px the conifer draws its own edge star, so the outline does not fill the gaps between its points.
-            case NatureSprite.Conifer: Conifer(layers); layers.Compose(Needle.Edge, outline: layers.Fine); break;
+            case NatureSprite.Conifer: Conifer(layers); layers.Compose(SpriteDrawing.Conifer.Edge, outline: layers.Fine); break;
             case NatureSprite.BroadleafStump: Stump(layers); layers.Compose(Timber.Edge); break;
             case NatureSprite.BroadleafSapling: Sapling(layers); layers.Compose(Canopy.Edge); break;
             case NatureSprite.OrchardGrowing:
@@ -333,7 +311,7 @@ public static partial class NatureSprites
                 Orchard(layers, sprite);
                 layers.Compose(OrchardCanopy.Edge);
                 break;
-            case NatureSprite.BerryBush: BerryBush(layers, true); layers.Compose(Bush.Edge); break;
+            case NatureSprite.BerryBush: BerryBush(layers, true); layers.Compose(ForestGrass.Edge); break;
             case NatureSprite.WildGreens: WildGreens(layers); layers.Compose(Canopy.Edge); break;
             case NatureSprite.FiberPlant: FiberPlant(layers); layers.Compose(Fiber.Edge, outline: false); break;
             case NatureSprite.StoneOutcrop: Outcrop(layers, Ore.None); layers.Compose(Rock.Edge); break;
@@ -342,12 +320,13 @@ public static partial class NatureSprites
             case NatureSprite.ClayBank: ClayBank(layers); layers.Compose(Bank.Edge); break;
             case NatureSprite.ConiferStump: ConiferStump(layers); layers.Compose(Timber.Edge); break;
             // Like the conifer, the 16 px sapling draws its own edge star so its points stay apart.
-            case NatureSprite.ConiferSapling: ConiferSapling(layers); layers.Compose(Needle.Edge, outline: layers.Fine); break;
+            case NatureSprite.ConiferSapling: ConiferSapling(layers); layers.Compose(SpriteDrawing.Conifer.Edge, outline: layers.Fine); break;
             // Reed blades carry their own south-east edge copy, like the fibre plant, so they stay slender.
             case NatureSprite.Reeds: Reeds(layers, harvested: false); layers.Compose(Reed.Edge, outline: false); break;
+            // Slate host rock is cool blue-grey to set off the pale diamond crystals.
             case NatureSprite.DiamondOutcrop: Outcrop(layers, Ore.Diamond); layers.Compose(Slate.Edge); break;
             case NatureSprite.HerbPatch: HerbPatch(layers); layers.Compose(Canopy.Edge); break;
-            case NatureSprite.BerryBushPicked: BerryBush(layers, false); layers.Compose(Bush.Edge); break;
+            case NatureSprite.BerryBushPicked: BerryBush(layers, false); layers.Compose(ForestGrass.Edge); break;
             case NatureSprite.WildGreensPicked: WildGreensPicked(layers); layers.Compose(Canopy.Edge); break;
             case NatureSprite.FiberPlantHarvested: FiberPlantHarvested(layers); layers.Compose(Fiber.Edge, outline: false); break;
             case NatureSprite.ReedsHarvested: Reeds(layers, harvested: true); layers.Compose(Reed.Edge, outline: false); break;
@@ -595,14 +574,14 @@ public static partial class NatureSprites
     {
         s.Shadow(17, 18, 11, 9);
         var c = s.Canvas;
-        if (!s.Fine) c.Star(16, 15, 12.5f, 7, Needle.Edge, 9);
-        c.Star(16, 15, 11.5f, 6.5f, Needle.Shade, 9);
-        c.Star(15.3f, 14.3f, 9, 5, Needle.Base, 9);
-        c.Star(14.6f, 13.6f, 6, 3.2f, Needle.Light, 9);
-        c.Rect(14, 13, 2, 2, Needle.Highlight);
+        if (!s.Fine) c.Star(16, 15, 12.5f, 7, SpriteDrawing.Conifer.Edge, 9);
+        c.Star(16, 15, 11.5f, 6.5f, SpriteDrawing.Conifer.Shade, 9);
+        c.Star(15.3f, 14.3f, 9, 5, SpriteDrawing.Conifer.Base, 9);
+        c.Star(14.6f, 13.6f, 6, 3.2f, SpriteDrawing.Conifer.Light, 9);
+        c.Rect(14, 13, 2, 2, SpriteDrawing.Conifer.Highlight);
         if (!s.Fine) return;
         // Lit needle tips on the north-west points of the base layer.
-        foreach (var (x, y) in new[] { (9, 11), (12, 7), (17, 6) }) c.Dot(x, y, Needle.Light);
+        foreach (var (x, y) in new[] { (9, 11), (12, 7), (17, 6) }) c.Dot(x, y, SpriteDrawing.Conifer.Light);
     }
 
     /// <summary>
@@ -711,9 +690,9 @@ public static partial class NatureSprites
     private static void BerryBush(Layers s, bool berries)
     {
         s.Shadow(17, 20, 10, 7);
-        s.Lobed(16, 17, 9.5f, Bush.Shade, 9, 4, 0.14f);
-        s.Lobed(15.2f, 16.2f, 8.6f, Bush.Base, 9, 4, 0.14f);
-        s.Lobed(14, 15, 5, Bush.Highlight, 6, 5, 0.14f);
+        s.Lobed(16, 17, 9.5f, ForestGrass.Shade, 9, 4, 0.14f);
+        s.Lobed(15.2f, 16.2f, 8.6f, ForestGrass.Base, 9, 4, 0.14f);
+        s.Lobed(14, 15, 5, ForestGrass.Highlight, 6, 5, 0.14f);
         foreach (var (x, y) in new[] { (20, 14), (12, 19), (18, 21), (22, 18), (15, 12), (10, 15) })
         {
             if (berries) Mark(s, x, y, Berry.Base, Berry.Light, dash16: true);
@@ -995,13 +974,13 @@ public static partial class NatureSprites
     {
         s.Shadow(17.5f, 19.5f, 6.5f, 4.6f);
         var c = s.Canvas;
-        if (!s.Fine) c.Star(16, 16, 8.4f, 4.6f, Needle.Edge, 7);
-        c.Star(16, 16, 7.2f, 3.8f, Needle.Base, 7);
-        c.Star(15.4f, 15.4f, 5.2f, 2.8f, Needle.Light, 7);
-        c.Star(14.9f, 14.9f, 2.6f, 1.4f, Needle.Highlight, 7);
+        if (!s.Fine) c.Star(16, 16, 8.4f, 4.6f, SpriteDrawing.Conifer.Edge, 7);
+        c.Star(16, 16, 7.2f, 3.8f, SpriteDrawing.Conifer.Base, 7);
+        c.Star(15.4f, 15.4f, 5.2f, 2.8f, SpriteDrawing.Conifer.Light, 7);
+        c.Star(14.9f, 14.9f, 2.6f, 1.4f, SpriteDrawing.Conifer.Highlight, 7);
         if (!s.Fine) return;
         // Shade on the south-east points, where they turn away from the light.
-        foreach (var (x, y) in new[] { (20, 19), (17, 21), (21, 16) }) c.Dot(x, y, Needle.Shade);
+        foreach (var (x, y) in new[] { (20, 19), (17, 21), (21, 16) }) c.Dot(x, y, SpriteDrawing.Conifer.Shade);
     }
 
     /// <summary>
@@ -1103,6 +1082,7 @@ public static partial class NatureSprites
     private static void Regrowing(Layers s)
     {
         var g = s.GroundCanvas;
+        // Fertile soil is loosened earth under a regrowing sprout or a bare depleted patch.
         g.Lumpy(16.4f, 17.6f, 7, Soil.Shade with { A = 0.5f }, 5, 1);
         g.Ellipse(16, 17.2f, 5.8f, 4, Soil.Base with { A = 0.75f });
         if (s.Fine) foreach (var (x, y) in new[] { (11, 18), (20, 20), (13, 20), (21, 15) }) g.Dot(x, y, Soil.Light);
@@ -1149,8 +1129,6 @@ public static partial class NatureSprites
         c.Dot(15, 13, Timber.Highlight);
         c.Line(18, 15, 19, 13, Timber.Base);
     }
-
-    private static readonly Ramp Cloth = Ramp.Of("75674D", "A09170", "CABC99", "E8DCC0", "FFF5DF");
 
     // Read the original ramps after type initialization, independently of partial
     // file ordering. PixelCanvas snaps the approved proposal's blended colours.

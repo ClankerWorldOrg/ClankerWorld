@@ -1,4 +1,5 @@
 using Godot;
+using static ClankerWorld.GodotClient.UI.SpriteDrawing;
 
 namespace ClankerWorld.GodotClient.UI;
 
@@ -50,11 +51,6 @@ public static class RoadSprites
     // Rock light and highlight: the two pebble greys.
     private static readonly Color PebbleLight = new("8B837D");
     private static readonly Color PebbleHighlight = new("A49C95");
-    // Timber for the bridge deck.
-    private static readonly Color TimberEdge = new("3F2A1A");
-    private static readonly Color TimberShade = new("6E4E31");
-    private static readonly Color TimberBase = new("8A6440");
-    private static readonly Color TimberLight = new("A77C52");
     // The fraying rim and breaks of the worn edge, at part strength.
     private static readonly Color DarkRim = Snap(new Color(DirtEdge, 0.5f));
     private static readonly Color WornRim = Snap(new Color(WornEdge, 0.45f));
@@ -460,17 +456,17 @@ public static class RoadSprites
             var plank = x / 4;
             var seam = x % 4 == 3;
             var worn = PixelArt.Hash(plank, 0, 900) % 4 == 0;
-            var color = seam ? TimberShade : worn ? TimberBase : TimberLight;
+            var color = seam ? Timber.Shade : worn ? Timber.Base : Timber.Light;
             for (var y = top + 2; y < bottom - 2; y++) image.SetPixel(x, y, color);
         }
         // A nail at each end of every plank, just inside the rails.
         for (var plank = 0; plank < 8; plank++)
         {
-            image.SetPixel(plank * 4 + 1, top + 3, TimberShade);
-            image.SetPixel(plank * 4 + 1, bottom - 4, TimberShade);
+            image.SetPixel(plank * 4 + 1, top + 3, Timber.Shade);
+            image.SetPixel(plank * 4 + 1, bottom - 4, Timber.Shade);
         }
-        FillRows(image, top, top + 2, TimberEdge);
-        FillRows(image, bottom - 2, bottom, TimberEdge);
+        FillRows(image, top, top + 2, Timber.Edge);
+        FillRows(image, bottom - 2, bottom, Timber.Edge);
         foreach (var railTop in new[] { top - 1, bottom - 3 })
         {
             HalfPost(image, 0, railTop, westHalf: false);
@@ -488,10 +484,10 @@ public static class RoadSprites
     {
         for (var dy = 0; dy < 4; dy++)
             for (var dx = 0; dx < 2; dx++)
-                image.SetPixel(x + dx, y + dy, TimberEdge);
+                image.SetPixel(x + dx, y + dy, Timber.Edge);
         var inner = westHalf ? x + 1 : x;
-        image.SetPixel(inner, y + 1, westHalf ? TimberLight : TimberBase);
-        image.SetPixel(inner, y + 2, westHalf ? TimberBase : TimberShade);
+        image.SetPixel(inner, y + 1, westHalf ? Timber.Light : Timber.Base);
+        image.SetPixel(inner, y + 2, westHalf ? Timber.Base : Timber.Shade);
     }
 
     /// <summary>16 px east-west deck: 10 px, plank tones alternating every two pixels, 1 px rails, post nubs and a soft shadow.</summary>
@@ -502,15 +498,15 @@ public static class RoadSprites
         FillRows(image, bottom, bottom + 2, DeckShadow);
         for (var x = 0; x < 16; x++)
         {
-            var color = x % 4 < 2 ? TimberLight : TimberBase;
+            var color = x % 4 < 2 ? Timber.Light : Timber.Base;
             for (var y = top + 1; y < bottom - 1; y++) image.SetPixel(x, y, color);
         }
-        FillRows(image, top, top + 1, TimberEdge);
-        FillRows(image, bottom - 1, bottom, TimberEdge);
+        FillRows(image, top, top + 1, Timber.Edge);
+        FillRows(image, bottom - 1, bottom, Timber.Edge);
         foreach (var x in new[] { 0, 15 })
         {
-            image.SetPixel(x, top - 1, TimberEdge);
-            image.SetPixel(x, bottom, TimberEdge);
+            image.SetPixel(x, top - 1, Timber.Edge);
+            image.SetPixel(x, bottom, Timber.Edge);
         }
     }
 
