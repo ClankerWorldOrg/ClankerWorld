@@ -1,3 +1,5 @@
+using ClankerWorld.Simulation.Kernel;
+using ClankerWorld.Simulation.World;
 
 namespace ClankerWorld.Server.Runtime;
 
@@ -147,4 +149,62 @@ internal static partial class TownTelemetry
     [LoggerMessage(EventId = 2269, Level = LogLevel.Information,
         Message = "founder_setup outcome=undone world_tick={WorldTick} founder={FounderId} placed={Placed}")]
     private static partial void LogFounderUndone(ILogger logger, long worldTick, string founderId, int placed);
+}
+
+internal static partial class AgentPlacementLog
+{
+    [LoggerMessage(EventId = 1710, Level = LogLevel.Information,
+        Message = "AgentPlaced AgentId={AgentId} HouseholdId={HouseholdId} WorldTick={WorldTick} X={X} Y={Y}")]
+    public static partial void Placed(ILogger logger, string agentId, string? householdId, long worldTick, int x, int y);
+
+    [LoggerMessage(EventId = 1711, Level = LogLevel.Warning,
+        Message = "AgentPlacementRejected AgentId={AgentId} Reason={Reason}")]
+    public static partial void Rejected(ILogger logger, string agentId, string reason);
+
+    [LoggerMessage(EventId = 1712, Level = LogLevel.Information,
+        Message = "AgentRenamed AgentId={AgentId} WorldTick={WorldTick}")]
+    public static partial void Renamed(ILogger logger, string agentId, long worldTick);
+}
+
+/// <summary>Committed cart milestones; names, private text and per-step movement stay out of these logs.</summary>
+public static partial class HandcartTelemetry
+{
+    public static void Record(ILogger logger, WorldEventEntry worldEvent, InventoryCheckpoint inventory,
+        IReadOnlyList<string> actorIds)
+    {
+        if (worldEvent.Kind is not ("handcart_attached" or "handcart_parked" or "handcart_loaded" or
+            "handcart_unloaded" or "handcart_repaired" or "handcart_transferred" or "handcart_blocked")) return;
+        var actor = actorIds.OrderByDescending(id => id.Length).FirstOrDefault(id =>
+            worldEvent.Detail.StartsWith(id + ":", StringComparison.Ordinal));
+        if (actor is null) return;
+        var cart = inventory.Lots.Where(lot => lot.ItemKind == InventoryContainerRules.Handcart)
+            .OrderByDescending(lot => lot.Id.Length).FirstOrDefault(lot =>
+                worldEvent.Detail.StartsWith(actor + ":" + lot.Id + ":", StringComparison.Ordinal) ||
+                worldEvent.Detail == actor + ":" + lot.Id);
+        var cargo = cart is null ? 0 : inventory.Lots.Where(lot => lot.ContainerLotId == cart.Id).Sum(lot => lot.Quantity);
+        LogMilestone(logger, worldEvent.WorldTick, worldEvent.Kind, actor, cart?.Id ?? "none",
+            cart?.ConditionBasisPoints / 100 ?? 0, cargo);
+    }
+
+    [LoggerMessage(EventId = 2260, Level = LogLevel.Information,
+        Message = "handcart_activity tick={WorldTick} event={EventKind} agent={AgentId} cart={CartId} condition={ConditionPercent} cargo={CargoQuantity}")]
+    private static partial void LogMilestone(ILogger logger, long worldTick, string eventKind,
+        string agentId, string cartId, int conditionPercent, int cargoQuantity);
+}
+
+public static partial class OwnerAgingOverrideTelemetry
+{
+    [LoggerMessage(EventId = 2211, Level = LogLevel.Information,
+        Message = "world_aging_override tick={WorldTick} rate={Rate}")]
+    public static partial void Changed(ILogger logger, long worldTick, int rate);
+}
+
+public static partial class OwnerJevAssistanceTelemetry
+{
+    [LoggerMessage(EventId = 2219, Level = LogLevel.Information,
+        Message = "world_jev_assistance tick={WorldTick} enabled={Enabled}")]
+    public static partial void Changed(ILogger logger, long worldTick, bool enabled);
+    [LoggerMessage(EventId = 2220, Level = LogLevel.Information,
+        Message = "world_routine_helper tick={WorldTick} provider={Provider} model={Model}")]
+    public static partial void HelperChanged(ILogger logger, long worldTick, string provider, string model);
 }

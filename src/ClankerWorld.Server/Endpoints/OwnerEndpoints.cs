@@ -430,15 +430,9 @@ internal static partial class OwnerEndpoints
                 return InvalidAction("A device-list action is required.");
             }
 
-            var authorization = authorizer.Authorize(
-                request,
-                "POST",
-                "/api/v1/owner/devices/list",
-                OwnerHttpBinding.DeviceListPayload());
-            if (!authorization.IsSuccess)
-            {
-                return OwnerFailures.ToHttpResult(authorization.Failure);
-            }
+            if (AuthorizeOwnerRequest(request, authorizer, "/api/v1/owner/devices/list",
+                _ => OwnerHttpBinding.DeviceListPayload(), out _) is { } authorizationFailure)
+                return authorizationFailure;
 
             return Results.Ok(authority.GetDevices());
         });

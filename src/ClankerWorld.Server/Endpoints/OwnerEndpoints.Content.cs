@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Server.Content;
 using ClankerWorld.Server.Pairing;
@@ -45,109 +46,10 @@ internal static partial class OwnerEndpoints
             }
         });
 
-        app.MapPost("/api/v1/owner/content/validate", (
-            OwnerSignedHttpRequest<OwnerContentPackageIdAction> request,
-            OwnerRequestAuthorizer authorizer,
-            IServiceProvider services) =>
-        {
-
-            if (request?.Action is null)
-            {
-                return InvalidAction("A package ID is required.", "action.packageId");
-            }
-
-            if (AuthorizeOwnerRequest(request, authorizer, "/api/v1/owner/content/validate",
-                action => OwnerActionPayload.ContentPackageId("validate", action), out _) is { } authorizationFailure)
-                return authorizationFailure;
-
-            var runtime = services.GetRequiredService<WorldRuntime>();
-            var stateFile = services.GetRequiredService<WorldStateFile>();
-            try
-            {
-                var resolution = runtime.ResolveContent(request.Action.PackageId);
-                var record = runtime.ValidateContent(request.Action.PackageId, resolution);
-                stateFile.Save(runtime);
-                return Results.Ok(OwnerContentPackageReceipt.From("validate", record));
-            }
-            catch (ArgumentException exception)
-            {
-                return InvalidAction(exception.Message);
-            }
-            catch (InvalidOperationException exception)
-            {
-                return Results.Conflict(new OwnerControlFailure("content_rejected", exception.Message));
-            }
-            catch (KeyNotFoundException exception)
-            {
-                return Results.NotFound(new OwnerControlFailure("content_not_found", exception.Message));
-            }
-        });
-
-        app.MapPost("/api/v1/owner/content/approve", (
-            OwnerSignedHttpRequest<OwnerContentPackageIdAction> request,
-            OwnerRequestAuthorizer authorizer,
-            IServiceProvider services) =>
-        {
-
-            if (request?.Action is null)
-            {
-                return InvalidAction("A package ID is required.", "action.packageId");
-            }
-
-            if (AuthorizeOwnerRequest(request, authorizer, "/api/v1/owner/content/approve",
-                action => OwnerActionPayload.ContentPackageId("approve", action), out _) is { } authorizationFailure)
-                return authorizationFailure;
-
-            var runtime = services.GetRequiredService<WorldRuntime>();
-            var stateFile = services.GetRequiredService<WorldStateFile>();
-            try
-            {
-                var record = runtime.ApproveContent(request.Action.PackageId);
-                stateFile.Save(runtime);
-                return Results.Ok(OwnerContentPackageReceipt.From("approve", record));
-            }
-            catch (InvalidOperationException exception)
-            {
-                return Results.Conflict(new OwnerControlFailure("content_rejected", exception.Message));
-            }
-            catch (KeyNotFoundException exception)
-            {
-                return Results.NotFound(new OwnerControlFailure("content_not_found", exception.Message));
-            }
-        });
-
-        app.MapPost("/api/v1/owner/content/stage", (
-            OwnerSignedHttpRequest<OwnerContentPackageIdAction> request,
-            OwnerRequestAuthorizer authorizer,
-            IServiceProvider services) =>
-        {
-
-            if (request?.Action is null)
-            {
-                return InvalidAction("A package ID is required.", "action.packageId");
-            }
-
-            if (AuthorizeOwnerRequest(request, authorizer, "/api/v1/owner/content/stage",
-                action => OwnerActionPayload.ContentPackageId("stage", action), out _) is { } authorizationFailure)
-                return authorizationFailure;
-
-            var runtime = services.GetRequiredService<WorldRuntime>();
-            var stateFile = services.GetRequiredService<WorldStateFile>();
-            try
-            {
-                var record = runtime.StageContent(request.Action.PackageId);
-                stateFile.Save(runtime);
-                return Results.Ok(OwnerContentPackageReceipt.From("stage", record));
-            }
-            catch (InvalidOperationException exception)
-            {
-                return Results.Conflict(new OwnerControlFailure("content_rejected", exception.Message));
-            }
-            catch (KeyNotFoundException exception)
-            {
-                return Results.NotFound(new OwnerControlFailure("content_not_found", exception.Message));
-            }
-        });
+        MapContentPackageStep(app, "validate", (runtime, packageId) =>
+            runtime.ValidateContent(packageId, runtime.ResolveContent(packageId)), catchArgument: true);
+        MapContentPackageStep(app, "approve", (runtime, packageId) => runtime.ApproveContent(packageId));
+        MapContentPackageStep(app, "stage", (runtime, packageId) => runtime.StageContent(packageId));
 
         app.MapPost("/api/v1/owner/content/rollback", (
             OwnerSignedHttpRequest<OwnerContentRollbackAction> request,
@@ -346,5 +248,41 @@ internal static partial class OwnerEndpoints
             validate: action => action.Timeline is not { IsValid: true } || action.WorldId is null || action.ExpectedEventId < 0 || action.RunEpoch < 0 ||
                 action.Operations is not { Count: > 0 and <= WorldMapEditRules.MaximumOperations }
                 ? Results.Conflict(new OwnerControlFailure("world_edit_refused", "Refresh the world, then choose between 1 and 64 tiles to edit.")) : null);
+    }
+
+    private static void MapContentPackageStep(WebApplication app, string operation,
+        Func<WorldRuntime, string, ContentPackageRecord> apply, bool catchArgument = false)
+    {
+        var path = $"/api/v1/owner/content/{operation}";
+        app.MapPost(path, (OwnerSignedHttpRequest<OwnerContentPackageIdAction> request,
+            OwnerRequestAuthorizer authorizer, IServiceProvider services) =>
+        {
+            if (request?.Action is null)
+                return InvalidAction("A package ID is required.", "action.packageId");
+            if (AuthorizeOwnerRequest(request, authorizer, path,
+                action => OwnerActionPayload.ContentPackageId(operation, action), out _) is { } authorizationFailure)
+                return authorizationFailure;
+
+            var runtime = services.GetRequiredService<WorldRuntime>();
+            var stateFile = services.GetRequiredService<WorldStateFile>();
+            try
+            {
+                var record = apply(runtime, request.Action.PackageId);
+                stateFile.Save(runtime);
+                return Results.Ok(OwnerContentPackageReceipt.From(operation, record));
+            }
+            catch (ArgumentException exception) when (catchArgument)
+            {
+                return InvalidAction(exception.Message);
+            }
+            catch (InvalidOperationException exception)
+            {
+                return Results.Conflict(new OwnerControlFailure("content_rejected", exception.Message));
+            }
+            catch (KeyNotFoundException exception)
+            {
+                return Results.NotFound(new OwnerControlFailure("content_not_found", exception.Message));
+            }
+        });
     }
 }
