@@ -15,3 +15,10 @@ public sealed record OwnerHostInformation(string Kind)
         _ => "Check the private network and ask the person hosting the world to check its server.",
     };
 }
+
+public sealed record HostStatus(int ConnectedDevices, bool SaveFailed, bool RecoveryPending,
+    string Kind, bool StopWhenGameQuits);
+
+/// <summary>Host-local comparison data; never part of saves or public observations.</summary>
+public sealed record HostDeviceRequest(string PairingId, string? PairingCode,
+    string PublicKeyFingerprint, DateTimeOffset ExpiresAtUtc);
