@@ -253,7 +253,7 @@ internal static partial class OwnerEndpoints
                     runtime.SwitchPausedWorld(before);
                     throw;
                 }
-                TownTelemetry.LogTownLayoutAccepted(loggerFactory.CreateLogger("ClankerWorld.Town"),
+                TownTelemetry.LayoutAccepted(loggerFactory.CreateLogger("ClankerWorld.Town"),
                     runtime.WorldTick, before.Towns?.Any(town => town.OriginSite is not null) == true
                         ? "redone" : "accepted", action.X, action.Y, plan.Buildings.Count, plan.RoadTiles.Count);
                 return Results.Ok(new OwnerFirstTownLayoutReceipt(action.X, action.Y,
@@ -304,7 +304,7 @@ internal static partial class OwnerEndpoints
                     }
                     var placed = runtime.FounderSetup!.FounderIds.Count;
                     var town = runtime.Towns.Single(item => item.Id == TownBorderRules.FirstTownId);
-                    TownTelemetry.LogTownTransition(loggerFactory.CreateLogger("ClankerWorld.Town"), runtime.WorldTick,
+                    TownTelemetry.Transition(loggerFactory.CreateLogger("ClankerWorld.Town"), runtime.WorldTick,
                         town.Id, TownTransitionKind.ResidentJoined, town.ResidentIds.Count,
                         town.AssignedBuildingIds.Count, town.BorderTiles.Count);
                     return Results.Ok(new OwnerFounderPlacementReceipt(action.FounderId, household, placed, WorldRuntime.RequiredFounders));
@@ -344,7 +344,7 @@ internal static partial class OwnerEndpoints
                             runtime.SwitchPausedWorld(before);
                             throw;
                         }
-                        TownTelemetry.LogFounderMoved(loggerFactory.CreateLogger("ClankerWorld.Town"),
+                        TownTelemetry.FounderMoved(loggerFactory.CreateLogger("ClankerWorld.Town"),
                             runtime.WorldTick, action.FounderId, action.X, action.Y);
                     }
                     return Results.Ok(new OwnerFounderMoveReceipt(action.FounderId, action.X, action.Y, changed));
@@ -386,7 +386,7 @@ internal static partial class OwnerEndpoints
                     providers.Configure(new OwnerProviderConfigurationAction("personal", "inherit", null, null,
                         false, action.FounderId));
                     providerChanged = true;
-                    TownTelemetry.LogFounderUndone(loggerFactory.CreateLogger("ClankerWorld.Town"),
+                    TownTelemetry.FounderUndone(loggerFactory.CreateLogger("ClankerWorld.Town"),
                         runtime.WorldTick, action.FounderId, placed);
                     return Results.Ok(new OwnerFounderUndoReceipt(action.FounderId, placed,
                         WorldRuntime.RequiredFounders));
@@ -434,7 +434,7 @@ internal static partial class OwnerEndpoints
                     services.GetRequiredService<WorldStateFile>().Save(runtime);
                     AgentPlacementLog.Placed(logger, action.AgentId, household, runtime.WorldTick, action.X, action.Y);
                     var town = runtime.Towns.SingleOrDefault(item => item.ResidentIds.Contains(action.AgentId, StringComparer.Ordinal));
-                    TownTelemetry.LogTownTransition(logger, runtime.WorldTick, town?.Id ?? "none",
+                    TownTelemetry.Transition(logger, runtime.WorldTick, town?.Id ?? "none",
                         town is null ? TownTransitionKind.ResidentUnaffiliated : TownTransitionKind.ResidentJoined,
                         town?.ResidentIds.Count ?? 0, town?.AssignedBuildingIds.Count ?? 0, town?.BorderTiles.Count ?? 0);
                     return Results.Ok(new OwnerAgentPlacementReceipt(action.AgentId, household, town?.Id));
@@ -528,7 +528,7 @@ internal static partial class OwnerEndpoints
             }
             runtime.Resume();
             var town = runtime.Towns.Single(item => item.Id == TownBorderRules.FirstTownId);
-            TownTelemetry.LogTownTransition(loggerFactory.CreateLogger("ClankerWorld.Town"), runtime.WorldTick,
+            TownTelemetry.Transition(loggerFactory.CreateLogger("ClankerWorld.Town"), runtime.WorldTick,
                 town.Id, TownTransitionKind.Founded, town.ResidentIds.Count,
                 town.AssignedBuildingIds.Count, town.BorderTiles.Count);
             return Results.Ok(OwnerControlReceipt.From("start-world", true, observations.GetSnapshot()));

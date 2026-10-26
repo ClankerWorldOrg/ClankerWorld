@@ -104,7 +104,7 @@ public sealed partial class WorldRuntimeService(
         if (logger is not null)
         {
             foreach (var town in runtime.Towns)
-                TownTelemetry.LogTownTransition(logger, runtime.WorldTick, town.Id, TownTransitionKind.StateLoaded,
+                TownTelemetry.Transition(logger, runtime.WorldTick, town.Id, TownTransitionKind.StateLoaded,
                     town.ResidentIds.Count, town.AssignedBuildingIds.Count, town.BorderTiles.Count);
         }
         return base.StartAsync(cancellationToken);
@@ -687,7 +687,7 @@ public sealed partial class WorldRuntimeService(
             var transferTown = fields.Length == 5 ? runtime.Towns.FirstOrDefault(item => item.Id == fields[0]) : null;
             var transfer = transferTown?.LandRecords.Transfers.FirstOrDefault(item => item.Id == fields[1]);
             if (transferTown is not null && transfer is not null)
-                TownTelemetry.LogLandTransfer(logger, worldEvent.WorldTick, transferTown.Id, transfer.Id, transferTransition,
+                TownTelemetry.LandTransfer(logger, worldEvent.WorldTick, transferTown.Id, transfer.Id, transferTransition,
                     transfer.Status, transfer.Parties.Count, transfer.Responses.Count, transfer.Tiles.Count);
             return;
         }
@@ -714,7 +714,7 @@ public sealed partial class WorldRuntimeService(
             var hearingTown = fields.Length >= 3 ? runtime.Towns.FirstOrDefault(item => item.Id == fields[0]) : null;
             var hearing = hearingTown?.LandRecords?.Cases.FirstOrDefault(item => item.Id == fields[1]);
             if (hearingTown is not null && hearing is not null)
-                TownTelemetry.LogLandHearing(logger, worldEvent.WorldTick, hearingTown.Id, hearing.Id, hearingTransition,
+                TownTelemetry.LandHearing(logger, worldEvent.WorldTick, hearingTown.Id, hearing.Id, hearingTransition,
                     hearing.Status, hearing.Revisions[^1].Number, hearing.Revisions[^1].Parties.Count,
                     hearing.Evidence.Count, hearing.Responses.Count, hearing.Rulings.Count);
             return;
@@ -743,7 +743,7 @@ public sealed partial class WorldRuntimeService(
                     council.ElectionHistory.FirstOrDefault(e => e.Id == fields[1]);
                 var change = civicTown.Government?.Changes.FirstOrDefault(c => c.Id == fields[1]);
                 var mayor = civicTown.Government?.Contest ?? (civicTown.Government?.ContestHistory is { Count: > 0 } history ? history[^1] : null);
-                TownTelemetry.LogTownCivic(logger, worldEvent.WorldTick, civicTown.Id, civicTransition,
+                TownTelemetry.Civic(logger, worldEvent.WorldTick, civicTown.Id, civicTransition,
                     council.Form == "representative", council.Members.Count, proposal?.Status ?? election?.Stage ?? change?.Status ?? mayor?.Stage ?? "none",
                     proposal?.Votes.Count(v => v.Yes) ?? change?.Votes.Count(v => v.Yes) ?? 0,
                     proposal?.Votes.Count(v => !v.Yes) ?? change?.Votes.Count(v => !v.Yes) ?? 0, election?.Ballots.Count ?? mayor?.Ballots.Count ?? 0);
@@ -758,7 +758,7 @@ public sealed partial class WorldRuntimeService(
             if (fields.Length == (worldEvent.Kind == "town_admission_approved" ? 3 : 4) &&
                 runtime.Towns.FirstOrDefault(t => t.Id == fields[0]) is { } admittingTown)
             {
-                TownTelemetry.LogTownAdmission(logger, worldEvent.WorldTick, admittingTown.Id,
+                TownTelemetry.Admission(logger, worldEvent.WorldTick, admittingTown.Id,
                     accepted ? "admitted" : worldEvent.Kind == "town_admission_approved" ? "awaiting_acceptance" : "lapsed:" + fields[3],
                     accepted ? fields[2] : "none",
                     accepted && int.TryParse(fields[3], System.Globalization.NumberStyles.None,
@@ -775,7 +775,7 @@ public sealed partial class WorldRuntimeService(
                 int.TryParse(fields[4], out var y) &&
                 fields[5] == "site_unavailable")
             {
-                TownTelemetry.LogTownSiteRejected(logger, worldEvent.WorldTick, fields[0], fields[1],
+                TownTelemetry.SiteRejected(logger, worldEvent.WorldTick, fields[0], fields[1],
                     fields[2], x, y, fields[5]);
             }
             return;
@@ -807,7 +807,7 @@ public sealed partial class WorldRuntimeService(
                 worldEvent.Detail.StartsWith(item.Id + "|", StringComparison.Ordinal))?.Id;
         if (townId is null) return;
         var town = runtime.Towns.FirstOrDefault(item => item.Id == townId);
-        TownTelemetry.LogTownTransition(logger, worldEvent.WorldTick, townId, kind.Value,
+        TownTelemetry.Transition(logger, worldEvent.WorldTick, townId, kind.Value,
             town?.ResidentIds.Count ?? 0, town?.AssignedBuildingIds.Count ?? 0, town?.BorderTiles.Count ?? 0);
     }
 
@@ -822,17 +822,17 @@ public sealed partial class WorldRuntimeService(
             case "bridge_built":
                 var fields = detail.Split(':', 3);
                 if (fields.Length >= 2)
-                    TownTelemetry.LogBridge(logger, worldEvent.WorldTick, fields[1], fields[0], "built", "none");
+                    TownTelemetry.Bridge(logger, worldEvent.WorldTick, fields[1], fields[0], "built", "none");
                 break;
             case "traffic_bridge_not_built" when reasonAt > 0:
-                TownTelemetry.LogBridge(logger, worldEvent.WorldTick, detail[..reasonAt], "traffic", "not_built",
+                TownTelemetry.Bridge(logger, worldEvent.WorldTick, detail[..reasonAt], "traffic", "not_built",
                     detail[(reasonAt + 1)..]);
                 break;
             case "town_road_unconnected":
                 var town = towns.OrderByDescending(item => item.Id.Length)
                     .FirstOrDefault(item => detail.StartsWith(item.Id + ":", StringComparison.Ordinal));
                 if (town is not null && reasonAt > town.Id.Length + 1)
-                    TownTelemetry.LogRoadUnconnected(logger, worldEvent.WorldTick, town.Id,
+                    TownTelemetry.RoadUnconnected(logger, worldEvent.WorldTick, town.Id,
                         detail[(town.Id.Length + 1)..reasonAt], detail[(reasonAt + 1)..]);
                 break;
         }

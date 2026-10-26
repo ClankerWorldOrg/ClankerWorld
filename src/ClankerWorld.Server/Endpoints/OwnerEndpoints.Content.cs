@@ -249,15 +249,15 @@ internal static partial class OwnerEndpoints
                 ? runtime.Towns.Single(item => item.Id == townId)
                 : null;
             var telemetry = loggerFactory.CreateLogger("ClankerWorld.Town");
-            TownTelemetry.LogTownTransition(telemetry, runtime.WorldTick, town?.Id ?? "none",
+            TownTelemetry.Transition(telemetry, runtime.WorldTick, town?.Id ?? "none",
                 town is null ? TownTransitionKind.BuildingUnassigned : TownTransitionKind.BuildingAssigned,
                 town?.ResidentIds.Count ?? 0, town?.AssignedBuildingIds.Count ?? 0, town?.BorderTiles.Count ?? 0);
             if (town is not null && town.BorderTiles.Count != previousBorderTiles)
-                TownTelemetry.LogTownTransition(telemetry, runtime.WorldTick, town.Id, TownTransitionKind.BorderExpanded,
+                TownTelemetry.Transition(telemetry, runtime.WorldTick, town.Id, TownTransitionKind.BorderExpanded,
                     town.ResidentIds.Count, town.AssignedBuildingIds.Count, town.BorderTiles.Count);
             if (town is not null)
                 foreach (var bridge in runtime.Bridges.Where(item => item.RouteId == $"road:{town.Id}:{placed.InstanceId}"))
-                    TownTelemetry.LogBridge(telemetry, runtime.WorldTick, bridge.Id, bridge.Trigger, "built", "none");
+                    TownTelemetry.Bridge(telemetry, runtime.WorldTick, bridge.Id, bridge.Trigger, "built", "none");
             return Results.Ok(result);
         });
 
