@@ -12,13 +12,7 @@ public sealed partial class ToolMakingRequestTests
     [InlineData(true)]
     public async Task AWaitingFinishedToolQuoteKeepsItsLotsAcrossNativeInventoryProcessing(bool foodPayment)
     {
-        var (state, buyer, seller, shop) = Prepared();
-        using var placing = Restore(state, buyer, seller, new RequestChoices("tool_request_place:"), new RequestChoices());
-        await Until(placing, world => world.ToolMakingRequests.Count == 1, 96);
-        using var working = Restore(Roundtrip(placing), buyer, seller, new RequestChoices(),
-            new RequestChoices("tool_request_accept:", "tool_request_work:"));
-        await Until(working, world => Assert.Single(world.ToolMakingRequests).Status == ToolMakingRequestStatus.Ready, 160);
-        state = Roundtrip(working);
+        var (state, buyer, seller, shop) = await RequestAtStage(ToolMakingRequestStatus.Ready);
         if (foodPayment)
         {
             var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "quote-food-payment", "food", buyer, 3);
@@ -81,13 +75,7 @@ public sealed partial class ToolMakingRequestTests
     [Fact]
     public async Task AFinishedToolQuoteRefusesPaymentNewlyPromisedByANativeAnimalSupplyPickup()
     {
-        var (state, buyer, seller, shop) = Prepared();
-        using var placing = Restore(state, buyer, seller, new RequestChoices("tool_request_place:"), new RequestChoices());
-        await Until(placing, world => world.ToolMakingRequests.Count == 1, 96);
-        using var working = Restore(Roundtrip(placing), buyer, seller, new RequestChoices(),
-            new RequestChoices("tool_request_accept:", "tool_request_work:"));
-        await Until(working, world => Assert.Single(world.ToolMakingRequests).Status == ToolMakingRequestStatus.Ready, 160);
-        state = Roundtrip(working);
+        var (state, buyer, seller, shop) = await RequestAtStage(ToolMakingRequestStatus.Ready);
         var home = state.Society.Society.GetAgent(buyer).HouseholdId!;
         var position = state.Agents.Single(person => person.AgentId == buyer).Position;
         var payment = state.Society.Society.Inventory.GetLot("request-payment");

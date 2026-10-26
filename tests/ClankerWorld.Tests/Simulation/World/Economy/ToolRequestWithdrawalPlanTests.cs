@@ -8,14 +8,10 @@ public sealed partial class ToolMakingRequestTests
     [Fact]
     public async Task APendingToolWithdrawalPreservesTheSameRequestsNativeProductionProgress()
     {
-        var (state, buyer, seller, _) = Prepared();
-        using var placing = Restore(state, buyer, seller, new RequestChoices("tool_request_place:"), new RequestChoices());
-        await Until(placing, world => world.ToolMakingRequests.Count == 1, 96);
-        using var accepting = Restore(Roundtrip(placing), buyer, seller, new RequestChoices(), new RequestChoices("tool_request_accept:"));
-        await Until(accepting, world => Assert.Single(world.ToolMakingRequests).Status == ToolMakingRequestStatus.Accepted, 96);
-        Assert.Null(Assert.Single(accepting.ToolMakingRequests).JobId);
+        var (state, buyer, seller, _) = await RequestAtStage(ToolMakingRequestStatus.Accepted);
+        Assert.Null(Assert.Single(state.ToolMakingRequests!).JobId);
         var provider = new HeldToolWithdrawalProvider();
-        using var world = WorldRuntime.Restore(Roundtrip(accepting), id => id == buyer ? provider :
+        using var world = WorldRuntime.Restore(state, id => id == buyer ? provider :
             id == seller ? new RequestChoices(DecisionProviderKind.Deterministic, "tool_request_work:") : new RequestChoices());
         world.SubmitInstruction(new("tool-withdrawal-guidance", "owner:test", buyer,
             OwnerInstructionKind.Suggestion, "Think about your next task."));

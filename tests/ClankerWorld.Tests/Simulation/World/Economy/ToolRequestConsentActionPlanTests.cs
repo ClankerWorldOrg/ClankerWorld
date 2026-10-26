@@ -12,11 +12,9 @@ public sealed partial class ToolMakingRequestTests
     public async Task ToolRequestConsentRetainsItsRequestSmithAndRecipeAcrossRollbackReplayAndReload(
         ToolRequestConsentKind kind, ToolMakingRequestStatus expected)
     {
-        var (state, buyer, seller, shop) = Prepared();
-        using var placing = Restore(state, buyer, seller, new RequestChoices("tool_request_place:"), new RequestChoices());
-        await Until(placing, world => world.ToolMakingRequests.Count == 1, 96);
-        state = Roundtrip(placing) with
-        { Agents = placing.Agents.Select(person => person with { LastDecisionContext = null }).ToArray() };
+        var (state, buyer, seller, shop) = await RequestAtStage(ToolMakingRequestStatus.Requested);
+        state = state with
+        { Agents = state.Agents.Select(person => person with { LastDecisionContext = null }).ToArray() };
         var actor = kind == ToolRequestConsentKind.Withdraw ? buyer : seller;
         var chooser = new ToolPlanChooser<ToolRequestConsentActionPlan>(actor,
             item => item.ActionPlan is ToolRequestConsentActionPlan selectedPlan && selectedPlan.Choice.Kind == kind,
@@ -45,11 +43,9 @@ public sealed partial class ToolMakingRequestTests
     [Fact]
     public async Task ToolRequestAcceptanceRefusesAWithdrawnRequestWithoutTakingMaterials()
     {
-        var (state, buyer, seller, _) = Prepared();
-        using var placing = Restore(state, buyer, seller, new RequestChoices("tool_request_place:"), new RequestChoices());
-        await Until(placing, world => world.ToolMakingRequests.Count == 1, 96);
-        state = Roundtrip(placing) with
-        { Agents = placing.Agents.Select(person => person with { LastDecisionContext = null }).ToArray() };
+        var (state, buyer, seller, _) = await RequestAtStage(ToolMakingRequestStatus.Requested);
+        state = state with
+        { Agents = state.Agents.Select(person => person with { LastDecisionContext = null }).ToArray() };
         var chooser = new ToolPlanChooser<ToolRequestConsentActionPlan>(seller,
             item => item.ActionPlan is ToolRequestConsentActionPlan selectedPlan && selectedPlan.Choice.Kind == ToolRequestConsentKind.Accept,
             choose: false, kind: DecisionProviderKind.LargeLanguageModel);

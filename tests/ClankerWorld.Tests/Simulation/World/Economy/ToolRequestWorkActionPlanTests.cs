@@ -7,14 +7,9 @@ public sealed partial class ToolMakingRequestTests
     [Fact]
     public async Task CommissionWorkRetainsItsNativeAgreementAcrossRollbackReplayAndStaleWithdrawal()
     {
-        var (state, buyer, seller, shop) = Prepared();
-        using var placing = Restore(state, buyer, seller, new RequestChoices("tool_request_place:"), new RequestChoices());
-        await Until(placing, world => world.ToolMakingRequests.Count == 1, 96);
-        using var accepting = Restore(Roundtrip(placing), buyer, seller, new RequestChoices(), new RequestChoices("tool_request_accept:"));
-        await Until(accepting, world => Assert.Single(world.ToolMakingRequests).Status == ToolMakingRequestStatus.Accepted, 96);
-        var request = Assert.Single(accepting.ToolMakingRequests);
+        var (state, buyer, seller, shop) = await RequestAtStage(ToolMakingRequestStatus.Accepted);
+        var request = Assert.Single(state.ToolMakingRequests!);
         Assert.Null(request.JobId);
-        state = Roundtrip(accepting);
         var chooser = new ToolPlanChooser<ToolRequestWorkActionPlan>(seller,
             item => item.ActionPlan is ToolRequestWorkActionPlan);
         using var world = WorldRuntime.Restore(state, _ => chooser);

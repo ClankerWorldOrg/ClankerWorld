@@ -16,6 +16,9 @@ namespace ClankerWorld.Tests;
 public sealed partial class ToolMakingRequestTests
 {
     private static readonly Lazy<PreparedRequest> RequestSetup = new(CreatePrepared);
+    private static readonly Dictionary<ToolMakingRequestStatus, Lazy<Task<PreparedRequest>>> RequestStages =
+        new[] { ToolMakingRequestStatus.Requested, ToolMakingRequestStatus.Accepted, ToolMakingRequestStatus.Ready }
+            .ToDictionary(status => status, status => new Lazy<Task<PreparedRequest>>(() => CreateRequestStage(status)));
 
     private sealed record PreparedRequest(byte[] Bytes, string Buyer, string Seller, string ShopId);
 
@@ -59,12 +62,10 @@ public sealed partial class ToolMakingRequestTests
     [Fact]
     public async Task BuiltInChoicesLeaveRequestedToolConsentToPersonalModels()
     {
-        var (state, buyer, seller, _) = Prepared();
-        using var placing = Restore(state, buyer, seller, new RequestChoices("tool_request_place:"), new RequestChoices());
-        await Until(placing, world => world.ToolMakingRequests.Count == 1, 96);
+        var (state, buyer, seller, _) = await RequestAtStage(ToolMakingRequestStatus.Requested);
         var buyerChoices = new RecordingBuiltInChoices();
         var sellerChoices = new RecordingBuiltInChoices();
-        using var world = WorldRuntime.Restore(Roundtrip(placing), actor => actor == buyer ? buyerChoices :
+        using var world = WorldRuntime.Restore(state, actor => actor == buyer ? buyerChoices :
             actor == seller ? sellerChoices : new RequestChoices());
         for (var tick = 0; tick < 40; tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.Contains(buyerChoices.Offered, candidate => candidate.Id.StartsWith("tool_request_withdraw:", StringComparison.Ordinal));
@@ -167,10 +168,7 @@ public sealed partial class ToolMakingRequestTests
     [InlineData(DecisionProviderKind.Jev)]
     public async Task RoutineProvidersCannotAcceptARequestOrTakeMaterials(DecisionProviderKind kind)
     {
-        var (state, buyer, seller, shop) = Prepared();
-        using var placing = Restore(state, buyer, seller, new RequestChoices("tool_request_place:"), new RequestChoices());
-        await Until(placing, world => world.ToolMakingRequests.Count == 1, 96);
-        state = Roundtrip(placing);
+        var (state, buyer, seller, shop) = await RequestAtStage(ToolMakingRequestStatus.Requested);
         var sellerChoices = new RequestChoices(kind, "tool_request_accept:");
         using var refusing = Restore(state, buyer, seller, new RequestChoices(), sellerChoices);
         for (var step = 0; step < 64; step++) Assert.True((await refusing.AdvanceOneTickAsync()).Advanced);
@@ -188,10 +186,7 @@ public sealed partial class ToolMakingRequestTests
     [InlineData(true)]
     public async Task RefusalOrCustomerWithdrawalBeforeWorkChangesNoStock(bool customerWithdraws)
     {
-        var (state, buyer, seller, _) = Prepared();
-        using var placing = Restore(state, buyer, seller, new RequestChoices("tool_request_place:"), new RequestChoices());
-        await Until(placing, world => world.ToolMakingRequests.Count == 1, 96);
-        state = Roundtrip(placing);
+        var (state, buyer, seller, _) = await RequestAtStage(ToolMakingRequestStatus.Requested);
         using var closing = Restore(state, buyer, seller,
             customerWithdraws ? new RequestChoices("tool_request_withdraw:") : new RequestChoices(),
             customerWithdraws ? new RequestChoices() : new RequestChoices("tool_request_refuse:"));
@@ -209,10 +204,7 @@ public sealed partial class ToolMakingRequestTests
     [Fact]
     public async Task SavesRejectFutureGoodsDuplicateRequestsAndAnotherWorkPlanBinding()
     {
-        var (state, buyer, seller, _) = Prepared();
-        using var placing = Restore(state, buyer, seller, new RequestChoices("tool_request_place:"), new RequestChoices());
-        await Until(placing, world => world.ToolMakingRequests.Count == 1, 96);
-        state = Roundtrip(placing);
+        var (state, buyer, seller, _) = await RequestAtStage(ToolMakingRequestStatus.Requested);
         var request = Assert.Single(state.ToolMakingRequests!);
         Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(state with { ToolMakingRequests = [request, request] }));
         Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(state with
@@ -322,10 +314,7 @@ public sealed partial class ToolMakingRequestTests
     [Fact]
     public async Task TwoSmithAdultsAcceptAtMostOneWorkPlanAndDemandDoesNotStartAnExtraJob()
     {
-        var (state, buyer, seller, shop) = Prepared();
-        using var placing = Restore(state, buyer, seller, new RequestChoices("tool_request_place:"), new RequestChoices());
-        await Until(placing, world => world.ToolMakingRequests.Count == 1, 96);
-        state = Roundtrip(placing);
+        var (state, buyer, seller, shop) = await RequestAtStage(ToolMakingRequestStatus.Requested);
         var providers = state.Society.Society.GetHousehold(shop.HouseholdId!).MemberIds
             .ToDictionary(actor => actor, _ => new RequestChoices("tool_request_accept:", "tool_request_work:"), StringComparer.Ordinal);
         using var working = WorldRuntime.Restore(state, actor => providers.GetValueOrDefault(actor) ?? new RequestChoices());
@@ -405,12 +394,7 @@ public sealed partial class ToolMakingRequestTests
     {
         var (state, buyer, seller, shop) = Prepared();
         var woodBefore = state.Society.Society.Inventory.Lots.Where(lot => lot.ItemKind == "wood").Sum(lot => lot.Quantity);
-        using var placing = Restore(state, buyer, seller, new RequestChoices("tool_request_place:"), new RequestChoices());
-        await Until(placing, world => world.ToolMakingRequests.Count == 1, 96);
-        state = Roundtrip(placing);
-        using var making = Restore(state, buyer, seller, new RequestChoices(), new RequestChoices("tool_request_accept:", "tool_request_work:"));
-        await Until(making, world => Assert.Single(world.ToolMakingRequests).Status == ToolMakingRequestStatus.Ready, 160);
-        state = Roundtrip(making);
+        state = (await RequestAtStage(ToolMakingRequestStatus.Ready)).State;
         var request = Assert.Single(state.ToolMakingRequests!);
         var job = Assert.Single(state.WorldSimulation!.ProductionJobs, job => job.JobId == request.JobId);
         Assert.Equal(WorldProductionJobState.Completed, job.State);
@@ -519,10 +503,7 @@ public sealed partial class ToolMakingRequestTests
     [Fact]
     public async Task AHousemateResumingTheDepartedWorkersToolJobKeepsTheWorldSaveable()
     {
-        var (state, buyer, seller, shop) = Prepared();
-        using var placing = Restore(state, buyer, seller, new RequestChoices("tool_request_place:"), new RequestChoices());
-        await Until(placing, world => world.ToolMakingRequests.Count == 1, 96);
-        state = Roundtrip(placing);
+        var (state, buyer, seller, shop) = await RequestAtStage(ToolMakingRequestStatus.Requested);
         using var making = Restore(state, buyer, seller, new RequestChoices(), new RequestChoices("tool_request_accept:", "tool_request_work:"));
         await Until(making, world => Assert.Single(world.ToolMakingRequests).JobId is not null, 160);
         var jobId = Assert.Single(making.ToolMakingRequests).JobId;
@@ -719,6 +700,28 @@ public sealed partial class ToolMakingRequestTests
         var state = WorldRuntimeCodec.Decode(bytes);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(state));
         return state;
+    }
+
+    private static async Task<(WorldRuntimeState State, string Buyer, string Seller, PlacedBuilding Shop)> RequestAtStage(
+        ToolMakingRequestStatus status)
+    {
+        var fixture = await RequestStages[status].Value;
+        var state = WorldRuntimeCodec.Decode(fixture.Bytes);
+        return (state, fixture.Buyer, fixture.Seller,
+            state.WorldSimulation!.Buildings.Single(building => building.InstanceId == fixture.ShopId));
+    }
+
+    private static async Task<PreparedRequest> CreateRequestStage(ToolMakingRequestStatus status)
+    {
+        var (state, buyer, seller, shop) = status == ToolMakingRequestStatus.Requested
+            ? Prepared() : await RequestAtStage(ToolMakingRequestStatus.Requested);
+        using var world = Restore(state, buyer, seller,
+            status == ToolMakingRequestStatus.Requested ? new RequestChoices("tool_request_place:") : new RequestChoices(),
+            status == ToolMakingRequestStatus.Ready ? new RequestChoices("tool_request_accept:", "tool_request_work:") :
+            status == ToolMakingRequestStatus.Accepted ? new RequestChoices("tool_request_accept:") : new RequestChoices());
+        await Until(world, current => current.ToolMakingRequests.Count == 1 &&
+            Assert.Single(current.ToolMakingRequests).Status == status, status == ToolMakingRequestStatus.Ready ? 160 : 96);
+        return new(WorldRuntimeCodec.Encode(Roundtrip(world)), buyer, seller, shop.InstanceId);
     }
 
     internal static (WorldRuntimeState State, string Buyer, string Seller, PlacedBuilding Shop) Prepared()
