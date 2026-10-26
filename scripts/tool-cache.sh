@@ -31,10 +31,13 @@ tool_cache_locked() {
         ) 9>"${lock}.lock"
         return
     fi
-    # Without flock, mkdir is atomic. Never delete another process's lock: two stale-lock
-    # waiters could otherwise remove a new owner's directory. Fail closed on stale locks.
-    local waited=0 owner
-    until mkdir "${lock}.d" 2>/dev/null; do
+    # Without flock, claim both directory and PID file: some mkdir implementations
+    # report success to concurrent creators. Never remove another process's stale lock.
+    local waited=0 owner pid="${BASHPID:-$$}"
+    until mkdir "${lock}.d" 2>/dev/null && (
+        set -o noclobber
+        printf '%s\n' "${pid}" > "${lock}.d/pid"
+    ) 2>/dev/null; do
         owner="$(cat "${lock}.d/pid" 2>/dev/null || true)"
         if [[ "${owner}" =~ ^[1-9][0-9]*$ ]] && ! kill -0 "${owner}" 2>/dev/null &&
             [[ "$(cat "${lock}.d/pid" 2>/dev/null || true)" == "${owner}" ]]; then
@@ -52,7 +55,6 @@ tool_cache_locked() {
         sleep 1
         waited=$((waited + 1))
     done
-    printf '%s\n' "${BASHPID:-$$}" > "${lock}.d/pid" || return 1
     (
         trap 'rm -rf -- "${lock}.d"' EXIT
         "$@"
