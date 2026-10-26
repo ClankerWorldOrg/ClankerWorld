@@ -11,6 +11,8 @@ namespace ClankerWorld.Tests;
 public sealed partial class ShopTradeTests
 {
     private static readonly ConcurrentDictionary<string, Lazy<PaidShopFixture>> PaidShops = new(StringComparer.Ordinal);
+    private static readonly Dictionary<bool, Lazy<StoreStockFixture>> StoreStockSetups = new[] { false, true }
+        .ToDictionary(cloth => cloth, cloth => new Lazy<StoreStockFixture>(() => BuildStoreStockFixture(cloth)));
 
     [Fact]
     public async Task OlderOpenExchangeRemainsVisibleWhenRecentCancelledOffersFillHistory()
@@ -401,21 +403,10 @@ public sealed partial class ShopTradeTests
     [Fact]
     public async Task StoreStockRequiresPickupAndDeliveryAndRetainsItsPartialSourceAcrossReload()
     {
-        using var generated = NormalPathWorld.CreateGenerated("probe-a", _ => new ShopProvider("safe_idle"));
-        var state = generated.ExportState();
-        var house = state.WorldSimulation!.Buildings.First(building => building.HouseholdId is not null &&
-            state.WorldContent!.Buildings.Single(item => item.CanonicalId == building.DefinitionId).Tags.Contains("house"));
-        var household = house.HouseholdId!;
-        var seller = state.Society.Society.GetHousehold(household).MemberIds[0];
-        var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "store-build-wood", "wood", household, 8);
-        inventory = InventoryAuthority.AddLot(inventory, "store-build-stone", "stone", household, 2);
-        using var placing = WorldRuntime.Restore(WithInventory(state, inventory), _ => new ShopProvider("safe_idle"));
-        var definition = placing.WorldContent.Buildings.Single(item => item.LocalId == "store-1x1");
-        var position = state.Map.Tiles.Where(tile => tile.Position != house.Position)
-            .OrderBy(tile => Math.Abs(tile.Position.X - house.Position.X) + Math.Abs(tile.Position.Y - house.Position.Y))
-            .Select(tile => tile.Position).First(point => placing.PlaceBuilding("household-store", definition.CanonicalId, point, household).Applied);
-        state = placing.ExportState();
-        inventory = state.Society.Society.Inventory with
+        var (state, seller, household, houseId, storeId) = CreateStoreStockFixture(cloth: true);
+        var house = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == houseId);
+        var position = state.WorldSimulation.Buildings.Single(building => building.InstanceId == storeId).Position;
+        var inventory = state.Society.Society.Inventory with
         {
             Lots = state.Society.Society.Inventory.Lots.Where(lot => lot.OwnerId != household && lot.OwnerId != seller).ToArray(),
         };
@@ -435,21 +426,21 @@ public sealed partial class ShopTradeTests
         using var collecting = WorldRuntime.Restore(state, id => id == seller
             ? new ShopProvider("haul_household_stock", "shop_stock_store") : new ShopProvider("safe_idle"));
         for (var step = 0; step < 40 && !collecting.Society.Inventory.Lots.Any(lot => lot.OwnerId == seller &&
-                 lot.DeliveryBuildingId == "household-store"); step++)
+                 lot.DeliveryBuildingId == storeId); step++)
             Assert.True((await collecting.AdvanceOneTickAsync()).Advanced);
         var carried = Assert.Single(collecting.Society.Inventory.Lots, lot => lot.OwnerId == seller &&
-            lot.DeliveryBuildingId == "household-store");
+            lot.DeliveryBuildingId == storeId);
         Assert.Equal(4, carried.Quantity);
         Assert.Null(carried.StorageBuildingId);
         Assert.Equal(8, collecting.Society.Inventory.GetLot("store-source-cloth").Quantity);
-        Assert.DoesNotContain(collecting.Society.Inventory.Lots, lot => lot.StorageBuildingId == "household-store");
+        Assert.DoesNotContain(collecting.Society.Inventory.Lots, lot => lot.StorageBuildingId == storeId);
         Assert.NotEqual(position, collecting.Agents.Single(person => person.AgentId == seller).Position);
         state = WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(collecting.ExportState()));
         using var delivering = WorldRuntime.Restore(state, id => id == seller
             ? new ShopProvider("haul_household_stock", "shop_stock_store") : new ShopProvider("safe_idle"));
-        for (var step = 0; step < 80 && !delivering.Society.Inventory.Lots.Any(lot => lot.StorageBuildingId == "household-store"); step++)
+        for (var step = 0; step < 80 && !delivering.Society.Inventory.Lots.Any(lot => lot.StorageBuildingId == storeId); step++)
             Assert.True((await delivering.AdvanceOneTickAsync()).Advanced);
-        var delivered = Assert.Single(delivering.Society.Inventory.Lots, lot => lot.StorageBuildingId == "household-store");
+        var delivered = Assert.Single(delivering.Society.Inventory.Lots, lot => lot.StorageBuildingId == storeId);
         Assert.Equal(household, delivered.OwnerId);
         Assert.Equal(4, delivered.Quantity);
         Assert.Null(delivered.DeliveryBuildingId);
@@ -529,8 +520,16 @@ public sealed partial class ShopTradeTests
         delivering.Validate();
     }
 
+    private sealed record StoreStockFixture(byte[] Bytes, string Seller, string Household, string HouseId, string StoreId);
+
     private static (WorldRuntimeState State, string Seller, string Household, string HouseId, string StoreId)
-        CreateStoreStockFixture()
+        CreateStoreStockFixture(bool cloth = false)
+    {
+        var fixture = StoreStockSetups[cloth].Value;
+        return (WorldRuntimeCodec.Decode(fixture.Bytes), fixture.Seller, fixture.Household, fixture.HouseId, fixture.StoreId);
+    }
+
+    private static StoreStockFixture BuildStoreStockFixture(bool cloth)
     {
         using var generated = NormalPathWorld.CreateGenerated("probe-a", _ => new ShopProvider("safe_idle"));
         var state = generated.ExportState();
@@ -538,14 +537,16 @@ public sealed partial class ShopTradeTests
             state.WorldContent!.Buildings.Single(item => item.CanonicalId == building.DefinitionId).Tags.Contains("house"));
         var household = house.HouseholdId!;
         var seller = state.Society.Society.GetHousehold(household).MemberIds[0];
+        var prefix = cloth ? "store-build-" : "test-store-build-";
+        var id = cloth ? "household-store" : "test-store-stock";
         var definition = state.WorldContent!.Buildings.Single(item => item.LocalId == "store-1x1");
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory,
-            "test-store-build-wood", "wood", household, 8);
-        inventory = InventoryAuthority.AddLot(inventory, "test-store-build-stone", "stone", household, 2);
+            prefix + "wood", "wood", household, 8);
+        inventory = InventoryAuthority.AddLot(inventory, prefix + "stone", "stone", household, 2);
         using var placing = WorldRuntime.Restore(WithInventory(state, inventory), _ => new ShopProvider("safe_idle"));
         var position = state.Map.Tiles.Where(tile => tile.Position != house.Position)
             .OrderBy(tile => Math.Abs(tile.Position.X - house.Position.X) + Math.Abs(tile.Position.Y - house.Position.Y))
-            .Select(tile => tile.Position).First(point => placing.PlaceBuilding("test-store-stock", definition.CanonicalId,
+            .Select(tile => tile.Position).First(point => placing.PlaceBuilding(id, definition.CanonicalId,
                 point, household).Applied);
         state = placing.ExportState();
         var storeId = Assert.Single(state.WorldSimulation!.Buildings, building =>
@@ -563,7 +564,7 @@ public sealed partial class ShopTradeTests
                 }
                 : person).ToArray(),
         };
-        return (state, seller, household, house.InstanceId, storeId);
+        return new(WorldRuntimeCodec.Encode(state), seller, household, house.InstanceId, storeId);
     }
 
     [Fact]
@@ -759,7 +760,7 @@ public sealed partial class ShopTradeTests
         Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(state));
     }
 
-    private static (WorldRuntimeState State, string Buyer, string Seller, string ShopId) CreateShopState(string kind = "blacksmith")
+    internal static (WorldRuntimeState State, string Buyer, string Seller, string ShopId) CreateShopState(string kind = "blacksmith")
     {
         var fixture = PaidShops.GetOrAdd(kind, static key => new(() => BuildShopFixture(key))).Value;
         return (WorldRuntimeCodec.Decode(fixture.Bytes), fixture.Buyer, fixture.Seller, fixture.ShopId);
@@ -844,7 +845,7 @@ public sealed partial class ShopTradeTests
     private static int TotalQuantity(InventoryCheckpoint inventory, string kind) => inventory.Lots
         .Where(lot => lot.ItemKind == kind).Sum(lot => lot.Quantity);
 
-    private sealed class ShopProvider(params string[] prefixes) : IDecisionProvider
+    internal sealed class ShopProvider(params string[] prefixes) : IDecisionProvider
     {
         public ConcurrentBag<string> Seen { get; } = [];
         public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;

@@ -7,16 +7,11 @@ public sealed partial class ToolMakingRequestTests
     [Fact]
     public async Task FinishedToolCollectionRetainsExactOutputAndPaymentAcrossRollbackReplayAndStaleWithdrawal()
     {
-        var (state, buyer, seller, shop) = Prepared();
-        using var placing = Restore(state, buyer, seller, new RequestChoices("tool_request_place:"), new RequestChoices());
-        await Until(placing, world => world.ToolMakingRequests.Count == 1, 96);
-        using var working = Restore(Roundtrip(placing), buyer, seller, new RequestChoices(),
-            new RequestChoices("tool_request_accept:", "tool_request_work:"));
-        await Until(working, world => Assert.Single(world.ToolMakingRequests).Status == ToolMakingRequestStatus.Ready, 160);
-        var request = Assert.Single(working.ToolMakingRequests);
+        var (state, buyer, seller, shop) = await RequestAtStage(ToolMakingRequestStatus.Ready);
+        var request = Assert.Single(state.ToolMakingRequests!);
         var chooser = new ToolPlanChooser<ToolRequestCollectionActionPlan>(buyer,
             item => item.ActionPlan is ToolRequestCollectionActionPlan { Quote: not null });
-        using var world = WorldRuntime.Restore(Roundtrip(working), _ => chooser);
+        using var world = WorldRuntime.Restore(state, _ => chooser);
         world.SubmitInstruction(new("finished-tool-guidance", "owner:test", buyer,
             OwnerInstructionKind.Suggestion, "Think about your next task."));
         var bytes = WorldRuntimeCodec.Encode(world.ExportState());

@@ -130,8 +130,8 @@ public sealed class TownSharedShopLimitTests
 
     private static WorldRuntimeState WithResidents(int population)
     {
-        var state = Baseline.Value;
-        for (var index = 4; index < population; index++)
+        var state = population == 4 ? Baseline.Value : PopulationStates[Populations.Last(count => count < population)].Value;
+        for (var index = state.Towns!.Single().ResidentIds.Count; index < population; index++)
             state = SecondGenerationFixture.Add(state, key: "shop-" + index).State;
         Assert.Equal(population, Assert.Single(state.Towns!).ResidentIds.Count);
         return state;

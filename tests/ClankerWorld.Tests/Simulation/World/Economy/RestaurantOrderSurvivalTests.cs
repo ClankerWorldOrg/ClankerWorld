@@ -6,18 +6,50 @@ namespace ClankerWorld.Tests;
 
 public sealed partial class RestaurantShopPipelineTests
 {
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task AnUrgentCustomersPersonalQuoteKeepsItsShopWhenAnOrderIsInterrupted(bool ordered)
+    private static readonly Lazy<Task<byte[]>> CookedPorridge = new(async () =>
     {
         var fixture = CreateFixture("porridge", kitchenReady: true);
         using var cooking = WorldRuntime.Restore(fixture.State, id => id == fixture.Cook
             ? fixture.CookProvider : new PipelineProvider("safe_idle"));
         await AdvanceUntil(cooking, () => cooking.WorldSimulation.ProductionJobs.Any(job =>
             job.RecipeId == fixture.Recipe.CanonicalId && job.State == WorldProductionJobState.Completed), limit: 80);
-        var state = cooking.ExportState();
-        var cooked = Assert.Single(cooking.Society.Inventory.Lots, lot => lot.ItemKind == "porridge");
+        return WorldRuntimeCodec.Encode(cooking.ExportState());
+    });
+
+    private static WorldRuntimeState HungryCustomer(WorldRuntimeState state, string customer, GridPoint? position = null)
+    {
+        var foodSources = state.Map.Resources.Where(resource => resource.Kind is "food" or "fruit")
+            .Select(resource => resource.Id).ToHashSet();
+        return state with
+        {
+            Agents = state.Agents.Select(person => person.AgentId == customer ? person with
+            {
+                Position = position ?? person.Position,
+                FullnessBasisPoints = 1_500,
+                LastDecisionContext = null,
+            } : person).ToArray(),
+            Resources = state.Resources.Select(resource => foodSources.Contains(resource.ResourceId)
+                ? resource with { State = ResourceState.Depleted } : resource).ToArray(),
+            WorldSystems = state.WorldSystems! with
+            {
+                Ecology = state.WorldSystems.Ecology with
+                {
+                    Resources = state.WorldSystems.Ecology.Resources.Select(resource => foodSources.Contains(resource.Id)
+                        ? resource with { Quantity = 0, State = EcologyResourceState.Depleted, NextRegenerationDay = 100 }
+                        : resource).ToArray(),
+                },
+            },
+        };
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task AnUrgentCustomersPersonalQuoteKeepsItsShopWhenAnOrderIsInterrupted(bool ordered)
+    {
+        var fixture = CreateFixture("porridge", kitchenReady: true);
+        var state = WorldRuntimeCodec.Decode(await CookedPorridge.Value);
+        var cooked = Assert.Single(state.Society.Society.Inventory.Lots, lot => lot.ItemKind == "porridge");
         Assert.Equal((Beta, fixture.Restaurant.InstanceId, 2), (cooked.OwnerId, cooked.StorageBuildingId, cooked.Quantity));
         var definition = state.WorldContent!.Buildings.Where(item => item.Tags.Contains("store"))
             .OrderBy(item => item.Width * item.Height).First();
@@ -51,28 +83,7 @@ public sealed partial class RestaurantShopPipelineTests
         }
         inventory = InventoryAuthority.Relocate(state.Society.Society.Inventory, "stock-urgent-choice-store",
             "restaurant-raw-berries", Beta, 2, storageBuildingId: otherShop);
-        var foodSources = state.Map.Resources.Where(resource => resource.Kind is "food" or "fruit")
-            .Select(resource => resource.Id).ToHashSet();
-        state = WithInventory(state, inventory) with
-        {
-            Agents = state.Agents.Select(person => person.AgentId == fixture.Customer ? person with
-            {
-                Position = customerSite!.Value,
-                FullnessBasisPoints = 1_500,
-                LastDecisionContext = null,
-            } : person).ToArray(),
-            Resources = state.Resources.Select(resource => foodSources.Contains(resource.ResourceId)
-                ? resource with { State = ResourceState.Depleted } : resource).ToArray(),
-            WorldSystems = state.WorldSystems! with
-            {
-                Ecology = state.WorldSystems.Ecology with
-                {
-                    Resources = state.WorldSystems.Ecology.Resources.Select(resource => foodSources.Contains(resource.Id)
-                        ? resource with { Quantity = 0, State = EcologyResourceState.Depleted, NextRegenerationDay = 100 }
-                        : resource).ToArray(),
-                },
-            },
-        };
+        state = HungryCustomer(WithInventory(state, inventory), fixture.Customer, customerSite!.Value);
         var choice = new PersonalShopChoice("shop_buy:" + fixture.Restaurant.InstanceId);
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)),
             id => id == fixture.Customer ? choice : new PipelineProvider("safe_idle"));
@@ -112,30 +123,9 @@ public sealed partial class RestaurantShopPipelineTests
     public async Task UrgentCustomerCanBuyCookedRestaurantFoodWithoutCancellingAnOrder(bool ordered)
     {
         var fixture = CreateFixture("porridge", kitchenReady: true);
-        using var cooking = WorldRuntime.Restore(fixture.State, id => id == fixture.Cook
-            ? fixture.CookProvider : new PipelineProvider("safe_idle"));
-        await AdvanceUntil(cooking, () => cooking.WorldSimulation.ProductionJobs.Any(job =>
-            job.RecipeId == fixture.Recipe.CanonicalId && job.State == WorldProductionJobState.Completed), limit: 80);
-        var initial = cooking.ExportState();
-        Assert.Equal(2, Assert.Single(cooking.Society.Inventory.Lots, lot => lot.ItemKind == "porridge").Quantity);
-        var foodSources = initial.Map.Resources.Where(resource => resource.Kind is "food" or "fruit")
-            .Select(resource => resource.Id).ToHashSet();
-        initial = initial with
-        {
-            Agents = initial.Agents.Select(person => person.AgentId == fixture.Customer
-                ? person with { FullnessBasisPoints = 1_500, LastDecisionContext = null } : person).ToArray(),
-            Resources = initial.Resources.Select(resource => foodSources.Contains(resource.ResourceId)
-                ? resource with { State = ResourceState.Depleted } : resource).ToArray(),
-            WorldSystems = initial.WorldSystems! with
-            {
-                Ecology = initial.WorldSystems.Ecology with
-                {
-                    Resources = initial.WorldSystems.Ecology.Resources.Select(resource => foodSources.Contains(resource.Id)
-                        ? resource with { Quantity = 0, State = EcologyResourceState.Depleted, NextRegenerationDay = 100 }
-                        : resource).ToArray(),
-                },
-            },
-        };
+        var initial = WorldRuntimeCodec.Decode(await CookedPorridge.Value);
+        Assert.Equal(2, Assert.Single(initial.Society.Society.Inventory.Lots, lot => lot.ItemKind == "porridge").Quantity);
+        initial = HungryCustomer(initial, fixture.Customer);
         fixture = fixture with { State = initial };
         using var world = Restore(fixture);
         var receipt = ordered ? world.SubmitInstruction(new("restaurant-order-survival", "owner:test",
