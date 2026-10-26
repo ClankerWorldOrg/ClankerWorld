@@ -451,22 +451,7 @@ public sealed partial class WorldRuntime
                 throw new InvalidDataException("A checkpoint belongs to a different world.");
             if (!society.Checkpoint.IsPaused)
                 throw new InvalidOperationException("Pause the world before loading a checkpoint.");
-            using var restored = Restore(checkpoint, providerFactory,
-                maxCognitionDispatchPerCycle);
-            // Loading never resumes a world implicitly, even if the saved
-            // checkpoint was taken while it was running.
-            restored.Pause();
-            var nextObserverGeneration = checked(observerGeneration + 1);
-            foreach (var id in pendingModelCalls.Keys.ToArray()) CancelPendingModelCall(id);
-            foreach (var id in pendingWills.Keys.ToArray()) this.familyWills.CancelPendingWill(this.FamilyWillWorld, id, "interrupted", true);
-            CancelIdentityMoments();
-            foreach (var id in pendingConversationTurns.Keys.ToArray())
-                CancelPendingConversationTurn(id, AgentConversationInterruption.OwnerPaused, suspendCurrent: false);
-            CommitPreparedTick(restored);
-            observerGeneration = nextObserverGeneration;
-            // Routes and timing described the world as it was; the next tick measures again.
-            plannedRoutes = new(StringComparer.Ordinal);
-            lastTickMilliseconds = null;
+            RestorePausedCheckpoint(checkpoint);
         }
         finally { tickGate.Release(); }
     }
@@ -481,22 +466,29 @@ public sealed partial class WorldRuntime
             using var gateScope = EnterGate();
             if (!society.Checkpoint.IsPaused)
                 throw new InvalidOperationException("Pause the world before selecting another world.");
-            using var restored = Restore(checkpoint, providerFactory,
-                maxCognitionDispatchPerCycle);
-            restored.Pause();
-            var nextObserverGeneration = checked(observerGeneration + 1);
-            foreach (var id in pendingModelCalls.Keys.ToArray()) CancelPendingModelCall(id);
-            foreach (var id in pendingWills.Keys.ToArray()) this.familyWills.CancelPendingWill(this.FamilyWillWorld, id, "interrupted", true);
-            CancelIdentityMoments();
-            foreach (var id in pendingConversationTurns.Keys.ToArray())
-                CancelPendingConversationTurn(id, AgentConversationInterruption.OwnerPaused, suspendCurrent: false);
-            CommitPreparedTick(restored);
-            observerGeneration = nextObserverGeneration;
-            // Routes and timing described the world as it was; the next tick measures again.
-            plannedRoutes = new(StringComparer.Ordinal);
-            lastTickMilliseconds = null;
+            RestorePausedCheckpoint(checkpoint);
         }
         finally { tickGate.Release(); }
+    }
+
+    private void RestorePausedCheckpoint(WorldRuntimeState checkpoint)
+    {
+        using var restored = Restore(checkpoint, providerFactory,
+            maxCognitionDispatchPerCycle);
+        // Loading never resumes a world implicitly, even if the saved
+        // checkpoint was taken while it was running.
+        restored.Pause();
+        var nextObserverGeneration = checked(observerGeneration + 1);
+        foreach (var id in pendingModelCalls.Keys.ToArray()) CancelPendingModelCall(id);
+        foreach (var id in pendingWills.Keys.ToArray()) this.familyWills.CancelPendingWill(this.FamilyWillWorld, id, "interrupted", true);
+        CancelIdentityMoments();
+        foreach (var id in pendingConversationTurns.Keys.ToArray())
+            CancelPendingConversationTurn(id, AgentConversationInterruption.OwnerPaused, suspendCurrent: false);
+        CommitPreparedTick(restored);
+        observerGeneration = nextObserverGeneration;
+        // Routes and timing described the world as it was; the next tick measures again.
+        plannedRoutes = new(StringComparer.Ordinal);
+        lastTickMilliseconds = null;
     }
 
     private async ValueTask<WorldStepResult> AdvancePreparedTickAsync(

@@ -994,17 +994,7 @@ public sealed partial class OwnerWorldObservationStore
         _ => "unknown",
     };
 
-    private static string ConversationInterruption(AgentConversationInterruption interruption) => interruption switch
-    {
-        AgentConversationInterruption.OwnerPaused => "owner_paused",
-        AgentConversationInterruption.Disconnected => "disconnected",
-        AgentConversationInterruption.UrgentNeed => "urgent_need",
-        AgentConversationInterruption.ProviderUnavailable => "provider_unavailable",
-        AgentConversationInterruption.ProviderTimedOut => "provider_timed_out",
-        AgentConversationInterruption.ProviderRejected => "provider_rejected",
-        AgentConversationInterruption.Restored => "restored",
-        _ => "unknown",
-    };
+    private static string ConversationInterruption(AgentConversationInterruption interruption) => ConversationSystem.ToWire(interruption);
 
     internal static OwnerWorldPackedTerrain PackTerrain(WorldMap map)
     {
@@ -2004,4 +1994,27 @@ public sealed partial class OwnerWorldObservationStore
             ? ConversationStatus(talk.Status) : order.TalkOutcome is not null ? "closed" : null;
     }
 
+
+    private static OwnerWorldProductionRecipe ProjectProductionRecipe(RecipeDefinition recipe) => new(
+        recipe.CanonicalId, recipe.DisplayName,
+        recipe.Inputs.Select(input => new OwnerWorldMaterialQuantity(input.ResourceId, input.Amount)).ToArray(),
+        recipe.Outputs.Select(output => new OwnerWorldMaterialQuantity(output.ResourceId, output.Amount)).ToArray());
+
+    private static Dictionary<string, OwnerWorldBuildingStorageChange[]> RecentBuildingStorageChanges(InventoryCheckpoint inventory)
+    {
+        var history = new Dictionary<string, List<OwnerWorldBuildingStorageChange>>(StringComparer.Ordinal);
+        // Read the bounded retained stream once, rather than scanning it for every building.
+        for (var index = inventory.Events.Count - 1; index >= 0; index--)
+        {
+            var item = inventory.Events[index];
+            foreach (var change in item.StorageChanges ?? [])
+            {
+                if (!history.TryGetValue(change.BuildingId, out var rows))
+                    history[change.BuildingId] = rows = [];
+                if (rows.Count < 10)
+                    rows.Add(new(item.EventId, item.WorldTick, change.ItemKind, change.QuantityChange));
+            }
+        }
+        return history.ToDictionary(pair => pair.Key, pair => pair.Value.ToArray(), StringComparer.Ordinal);
+    }
 }
