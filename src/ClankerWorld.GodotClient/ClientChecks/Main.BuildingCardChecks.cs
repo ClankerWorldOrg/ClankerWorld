@@ -152,8 +152,7 @@ public partial class Main
         {
             RenderBuildingCard(buildingMap with { PlacedBuildings = [house with { StoredQuantity = quantity }] });
             foreach (var storage in storageViews)
-                if (!HasSpace(storage) || SpaceMeter(storage).Percent != percent || SpaceText(storage) != $"{quantity} / 128 used")
-                    throw new InvalidOperationException("Empty, lightly occupied, full and over-limit storage must retain exact recorded numbers while bounding the meter and keeping nonempty storage visible.");
+                FailUiCheckIf(!HasSpace(storage) || SpaceMeter(storage).Percent != percent || SpaceText(storage) != $"{quantity} / 128 used", "Empty, lightly occupied, full and over-limit storage must retain exact recorded numbers while bounding the meter and keeping nonempty storage visible.");
         }
         RenderBuildingCard(buildingMap with
         {
@@ -337,8 +336,7 @@ public partial class Main
                 if (lines.Count is < 1 or > 2 || lines.Any(line =>
                     UiFonts.Text.GetStringSize(line, HorizontalAlignment.Left, -1, UiFonts.Body).X > slot.CustomMinimumSize.X))
                     throw new InvalidOperationException($"Storage item labels must fit both lines inside their cell: {name}.");
-                if (kind == "fruit" && lines.Single() != name || slot.TooltipText != $"{name} × 3")
-                    throw new InvalidOperationException("Storage labels must retain short names and the complete item tooltip.");
+                FailUiCheckIf(kind == "fruit" && lines.Single() != name || slot.TooltipText != $"{name} × 3", "Storage labels must retain short names and the complete item tooltip.");
             }
             finally { slot.Free(); }
         }
@@ -594,9 +592,8 @@ public partial class Main
             {
                 PlacedBuildings = [workshop, second with { HouseholdId = "household:three" }],
             });
-            if (!buildingRemoveConfirmation.Visible || pendingBuildingRemoval is not
-                { InstanceId: "second-workshop", ExpectedTownId: "town:first", ExpectedHouseholdId: "household:one" } || pendingBuildingRemoval.WorldId != map.WorldId)
-                throw new InvalidOperationException("Removal must retain the owner record originally confirmed so the host can reject a stale change.");
+            FailUiCheckIf(!buildingRemoveConfirmation.Visible || pendingBuildingRemoval is not
+            { InstanceId: "second-workshop", ExpectedTownId: "town:first", ExpectedHouseholdId: "household:one" } || pendingBuildingRemoval.WorldId != map.WorldId, "Removal must retain the owner record originally confirmed so the host can reject a stale change.");
             buildingRemoveConfirmation.EmitSignal(ConfirmationDialog.SignalName.Canceled);
             FailUiCheckIf(pendingBuildingRemoval is not null || pendingBuildingRemovalWorldId is not null, "Canceling removal must clear its retained action.");
             buildingRemoveButton.EmitSignal(BaseButton.SignalName.Pressed);

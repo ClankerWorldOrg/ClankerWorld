@@ -95,15 +95,14 @@ public partial class Main
 
         // The fitting follows its saved Road neighbour, never a nearby Road search or a fallback door.
         var lanterns = StreetLanterns(night);
-        if (lanterns.Count != 4 ||
+        FailUiCheckIf(lanterns.Count != 4 ||
             !lanterns.Contains(new StreetLanternLight(new(12, 9), DoorSide.North, LanternStyle.Stone)) ||
             !lanterns.Contains(new StreetLanternLight(new(15, 8), DoorSide.East, LanternStyle.Hanging)) ||
             !lanterns.Contains(new StreetLanternLight(new(21, 8), DoorSide.West, LanternStyle.Stone)) ||
             !lanterns.Contains(new StreetLanternLight(new(24, 7), DoorSide.South, LanternStyle.Hanging)) ||
             StreetLanternLight.FromBuilding(Lantern("invalid", "stone_lantern", 12, 8, 14, 8), 256, false) is not null ||
             StreetLanternLight.FromBuilding(Lantern("seam", "hanging_lantern", 0, 8, 255, 8), 256, true)
-                is not { Edge: DoorSide.East, RoadTile.X: 255 })
-            throw new InvalidOperationException("Street fittings must follow the saved cardinal Road edge, including the wrapped seam, and reject a non-adjacent Road.");
+                is not { Edge: DoorSide.East, RoadTile.X: 255 }, "Street fittings must follow the saved cardinal Road edge, including the wrapped seam, and reject a non-adjacent Road.");
 
         // A lived-in House: windows on both sides and the door, never the roof or the back wall.
         static bool Overlaps(Rect2 a, Rect2 b) =>
@@ -117,11 +116,10 @@ public partial class Main
             !homeLight.Any(area => area.Position.X >= house.Roof.End.X) ||
             !homeLight.Any(area => area.End.X <= house.Roof.Position.X) ||
             !homeLight.Any(area => area.Position.Y >= house.Roof.End.Y), "A lived-in House must light the ground at its sides and door, not its roof or back wall.");
-        if (NightLightShapes.Building(At(12).Plan, false, false, true, 0, 1).Count != 0 ||
+        FailUiCheckIf(NightLightShapes.Building(At(12).Plan, false, false, true, 0, 1).Count != 0 ||
             NightLightShapes.Building(At(12).Plan, false, true, true, 0, 1).Count != 0 ||
             (At(12) with { Working = true }).Shines ||
-            NightLightShapes.Building(At(24).Plan, true, true, true, 0, 1).Count != 0)
-            throw new InvalidOperationException("An empty House and a Silo must stay dark.");
+            NightLightShapes.Building(At(24).Plan, true, true, true, 0, 1).Count != 0, "An empty House and a Silo must stay dark.");
 
         // The Warehouse: a lantern fitting by day, lit only at night while someone is in it.
         var store = At(20).Plan;

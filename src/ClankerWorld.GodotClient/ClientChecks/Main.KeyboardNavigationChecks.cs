@@ -36,8 +36,7 @@ public partial class Main
         var limit = panel is null ? 32 : KeyboardControls(panel).Length + 2;
         for (var step = 0; FocusOwner() != bar && step < limit; step++) await KeyboardKeyAsync(Key.Tab);
         FailUiCheckIf(FocusOwner() != bar, "Tab must reach a plain reader's scrollbar, including native dialogs.");
-        if (bar.GetThemeStylebox("scroll_focus") is not StyleBoxFlat { BorderWidthLeft: > 0 })
-            throw new InvalidOperationException("A plain reader's keyboard focus must have a visible outline.");
+        FailUiCheckIf(bar.GetThemeStylebox("scroll_focus") is not StyleBoxFlat { BorderWidthLeft: > 0 }, "A plain reader's keyboard focus must have a visible outline.");
         await KeyboardKeyAsync(Key.Home);
         var afterHomeFocus = FocusOwner()?.GetPath().ToString();
         var before = scroll.ScrollVertical;
@@ -104,8 +103,7 @@ public partial class Main
         FailUiCheckIf(pauseMenuPanel.Visible || !mainMenuOverlay.Visible, "Keyboard Back must return to Main Menu.");
         FailUiCheckIf(GetViewport().GuiGetFocusOwner() != mainMenuSettingsButton, "Closing title Settings must restore focus to its Settings opener.");
         await KeyboardKeyAsync(Key.Tab);
-        if (GetViewport().GuiGetFocusOwner() is not { } focus || !mainMenuOverlay.IsAncestorOf(focus))
-            throw new InvalidOperationException("Returned Main Menu must keep its keyboard focus inside the menu.");
+        FailUiCheckIf(GetViewport().GuiGetFocusOwner() is not { } focus || !mainMenuOverlay.IsAncestorOf(focus), "Returned Main Menu must keep its keyboard focus inside the menu.");
         GetViewport().GuiReleaseFocus();
         keyboardNavigation = false;
     }
@@ -173,8 +171,7 @@ public partial class Main
             for (var step = 0; GetViewport().GuiGetFocusOwner() != readerScroll && step <= KeyboardControls(thoughtsPanel).Length; step++)
                 await KeyboardKeyAsync(Key.Tab);
             if (!readerScroll.HasFocus()) throw new InvalidOperationException("Tab must reach an overflowing reader's scrollbar.");
-            if (readerScroll.GetThemeStylebox("scroll_focus") is not StyleBoxFlat { BorderWidthLeft: > 0 })
-                throw new InvalidOperationException("A reader's keyboard focus must have a visible outline.");
+            FailUiCheckIf(readerScroll.GetThemeStylebox("scroll_focus") is not StyleBoxFlat { BorderWidthLeft: > 0 }, "A reader's keyboard focus must have a visible outline.");
             var scrollBefore = readerScroll.Value;
             await KeyboardKeyAsync(Key.Down);
             if (!readerScroll.HasFocus()) throw new InvalidOperationException("Scrolling a text reader must retain its keyboard focus.");
@@ -333,12 +330,10 @@ public partial class Main
                 var detailsFocus = GetViewport().GuiGetFocusOwner();
                 FailUiCheckIf(!buildingDetailsPanel.Visible || detailsFocus is null || !buildingDetailsPanel.IsAncestorOf(detailsFocus), "Opening Details must retain focus in the new panel after the quick card closes.");
                 await KeyboardKeyAsync(Key.Tab);
-                if (GetViewport().GuiGetFocusOwner() is not { } detailControl || !buildingDetailsPanel.IsAncestorOf(detailControl))
-                    throw new InvalidOperationException("Tab must remain in building Details.");
+                FailUiCheckIf(GetViewport().GuiGetFocusOwner() is not { } detailControl || !buildingDetailsPanel.IsAncestorOf(detailControl), "Tab must remain in building Details.");
                 await KeyboardKeyAsync(Key.Escape);
-                if (!buildingQuickCard.Visible || GetViewport().GuiGetFocusOwner() is not { } quickControl ||
-                    !buildingQuickCard.IsAncestorOf(quickControl))
-                    throw new InvalidOperationException("Back from Details must focus the restored quick card.");
+                FailUiCheckIf(!buildingQuickCard.Visible || GetViewport().GuiGetFocusOwner() is not { } quickControl ||
+                    !buildingQuickCard.IsAncestorOf(quickControl), "Back from Details must focus the restored quick card.");
                 await KeyboardKeyAsync(Key.Escape);
             }
             GD.Print("Keyboard screen walk passed: Settings opener/Back, Agents/Profile/Rename, overflowing Thoughts scrolling, Memories, Family, World Info, Filters, Event Log, World Map camera, Controls, Developer numeric field, ground and both street lanterns.");

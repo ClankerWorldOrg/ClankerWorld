@@ -13,8 +13,7 @@ public partial class Main
     private void VerifyPlainEllipses(string when)
     {
         var ellipsis = GameUiText.Ellipsis;
-        if (GameUiText.PlainEllipses($"Well{ellipsis} maybe{ellipsis}") != "Well... maybe...")
-            throw new InvalidOperationException("Text from agents and the host must spell an ellipsis as three full stops.");
+        FailUiCheckIf(GameUiText.PlainEllipses($"Well{ellipsis} maybe{ellipsis}") != "Well... maybe...", "Text from agents and the host must spell an ellipsis as three full stops.");
 
         // Agents' thoughts and speech reach the text panels as the model wrote them.
         var history = conversationHistoryText.Text;

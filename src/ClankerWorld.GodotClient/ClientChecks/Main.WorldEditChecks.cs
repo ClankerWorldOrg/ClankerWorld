@@ -132,11 +132,10 @@ public partial class Main
             var before = terrainMap;
             refuse = true;
             await SubmitWorldEditAsync();
-            if (sent?.Operations is not [{ Kind: "place_resource", Value: "food", IsRenewable: true }] ||
+            FailUiCheckIf(sent?.Operations is not [{ Kind: "place_resource", Value: "food", IsRenewable: true }] ||
                 !statusLabel.Text.Contains("Peaks can't hold a building.", StringComparison.Ordinal) ||
                 !statusLabel.Text.StartsWith("World edit refused; nothing changed.", StringComparison.Ordinal) ||
-                !ReferenceEquals(before, terrainMap) || worldEditTiles.Count != 1 || pendingSubmission is not null || isOwnerAction)
-                throw new InvalidOperationException("A refusal must show the server's reason, preserve the world and preview, and release request recovery.");
+                !ReferenceEquals(before, terrainMap) || worldEditTiles.Count != 1 || pendingSubmission is not null || isOwnerAction, "A refusal must show the server's reason, preserve the world and preview, and release request recovery.");
             refuse = false;
             refuseWithReceipt = true;
             await SubmitWorldEditAsync();

@@ -2314,7 +2314,7 @@ public partial class Main
             FailUiCheckIf(!ItemIcons.Has("storage_pot") || !ItemIcons.Has("fresh_water") ||
                 IconData("storage_pot") != IconData("clay_pot") || IconData("fresh_water") != IconData("water") ||
                 IconData("storage_pot") == IconData("water_jug"), "The storage pot and fresh water must show their approved, distinct icons.");
-            if (BuildingSprites.KindFor(["shelter"]) != BuildingKind.Shelter ||
+            FailUiCheckIf(BuildingSprites.KindFor(["shelter"]) != BuildingKind.Shelter ||
                 BuildingSprites.KindFor(["house", "shelter"]) != BuildingKind.House ||
                 BuildingSprites.KindFor(["cooking", "warmth"]) != BuildingKind.Hearth ||
                 BuildingSprites.KindFor(["silo", "farm-storage"]) != BuildingKind.Silo ||
@@ -2332,8 +2332,7 @@ public partial class Main
                 NatureSprites.ForResourceKind("clay") != NatureSprite.ClayBank ||
                 NatureSprites.ForResourceKind("grain_seed") != NatureSprite.WildSeedPatch ||
                 NatureSprites.ForResourceKind("iron_ore") is not null ||
-                BuildingSprites.KindForObject("resource") is not null)
-                throw new InvalidOperationException("Buildings and map objects must pick their art family from their recorded tags and kinds.");
+                BuildingSprites.KindForObject("resource") is not null, "Buildings and map objects must pick their art family from their recorded tags and kinds.");
             var agentData = new HashSet<string>(StringComparer.Ordinal);
             foreach (var agentSize in new[] { 16, 32 })
                 for (var stage = 0; stage < 4; stage++)

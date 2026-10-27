@@ -57,10 +57,9 @@ public partial class Main
         var stub = new StreetLanternSite(lantern, 2).Cells();
         var whole = new StreetLanternSite(lantern, 3).Cells();
         static float Area(IEnumerable<LightCell> cells) => cells.Sum(cell => cell.Area.Size.X * cell.Area.Size.Y);
-        if (hole.Count == 0 || stub.Count == 0 || !whole.SequenceEqual(fitting) || Area(stub) >= Area(whole) ||
+        FailUiCheckIf(hole.Count == 0 || stub.Count == 0 || !whole.SequenceEqual(fitting) || Area(stub) >= Area(whole) ||
             new[] { hole, stub, whole }.Any(cells => cells.Any(cell => cell.Kind != LightCellKind.Paint)) ||
-            stub.Any(piece => !fitting.Any(cell => cell.Area.Encloses(piece.Area) && cell.Color == piece.Color)))
-            throw new InvalidOperationException("A lantern must go up as a hole, then part of its fitting, then the whole fitting, unlit until it is finished.");
+            stub.Any(piece => !fitting.Any(cell => cell.Area.Encloses(piece.Area) && cell.Color == piece.Color)), "A lantern must go up as a hole, then part of its fitting, then the whole fitting, unlit until it is finished.");
         var stone = lantern with { Style = LanternStyle.Stone };
         FailUiCheckIf(Area(new StreetLanternSite(stone, 2).Cells()) >= Area(new StreetLanternSite(stone, 3).Cells()), "A stone lamp's stub must be less than the finished pillar.");
         foreach (var style in Enum.GetValues<LanternStyle>())
@@ -75,15 +74,13 @@ public partial class Main
                     full.Where(pixel => pixel.Area.Position.X % 2 == 0 && pixel.Area.Position.Y % 2 == 0)
                         .Any(pixel => !half.Any(cell => cell.Area.Position == pixel.Area.Position && cell.Color == pixel.Color)), "Lantern holes must retain approved top-left pixels on the native 16 px grid on every Road edge.");
             }
-        if (BuildingSprites.LanternSiteTexture(32, 1) is null || BuildingSprites.LanternSiteTexture(16, 2) is not { } logs ||
-            logs.GetWidth() != 16 || BuildingSprites.LanternSiteTexture(32, 3) is not null)
-            throw new InvalidOperationException("A lantern's materials must lie on its tile until the fitting stands.");
+        FailUiCheckIf(BuildingSprites.LanternSiteTexture(32, 1) is null || BuildingSprites.LanternSiteTexture(16, 2) is not { } logs ||
+            logs.GetWidth() != 16 || BuildingSprites.LanternSiteTexture(32, 3) is not null, "A lantern's materials must lie on its tile until the fitting stands.");
 
         if (renderedMapSnapshot is { } map && terrainMap is { } terrain)
         {
             var building = map with { ConstructionSites = sites, PlacedBuildings = [] };
-            if (StreetLanternSites(building) is not [{ Stage: 2 } only] || only.Lantern != lantern)
-                throw new InvalidOperationException("Only lantern sites must go to the Road-edge drawing.");
+            FailUiCheckIf(StreetLanternSites(building) is not [{ Stage: 2 } only] || only.Lantern != lantern, "Only lantern sites must go to the Road-edge drawing.");
             FailUiCheckIf(!HoverSummary(building, terrain, new Vector2I(4, 2)).Contains("House · Being built · 50% done", StringComparison.Ordinal), "Hovering a construction site must say what it is and how far it has got.");
         }
         terrainLayer.SetConstructionSites([]);

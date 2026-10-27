@@ -49,9 +49,8 @@ public partial class Main
             {
                 host.Reconnect = next;
                 await RefreshAsync();
-                if (observationSession.Current?.Baseline.Snapshot is not { } shown ||
-                    shown.WorldId != next.Baseline.Snapshot.WorldId || shown.WorldTick != next.Baseline.Snapshot.WorldTick)
-                    throw new InvalidOperationException("The rename check must apply the host's next snapshot through an ordinary refresh.");
+                FailUiCheckIf(observationSession.Current?.Baseline.Snapshot is not { } shown ||
+                    shown.WorldId != next.Baseline.Snapshot.WorldId || shown.WorldTick != next.Baseline.Snapshot.WorldTick, "The rename check must apply the host's next snapshot through an ordinary refresh.");
             }
             async Task RefuseTakenNameAsync(OwnerWorldReconnect? refreshWhileDeciding = null)
             {

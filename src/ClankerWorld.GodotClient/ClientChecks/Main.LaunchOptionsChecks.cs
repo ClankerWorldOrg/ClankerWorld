@@ -89,15 +89,13 @@ public partial class Main
                 var deadline = Stopwatch.StartNew();
                 while ((!File.Exists(arguments) || File.ReadAllLines(arguments).Length < 3) && deadline.Elapsed < TimeSpan.FromSeconds(5))
                     await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-                if (!File.Exists(arguments) || !File.ReadAllLines(arguments).SequenceEqual(new[] { "--", "--choose-version=" + BuildInformation.Version, "--player-data" }))
-                    throw new InvalidOperationException("Launcher hand-off must retain argument boundaries and the actual game version.");
+                FailUiCheckIf(!File.Exists(arguments) || !File.ReadAllLines(arguments).SequenceEqual(new[] { "--", "--choose-version=" + BuildInformation.Version, "--player-data" }), "Launcher hand-off must retain argument boundaries and the actual game version.");
                 File.Delete(arguments);
                 if (!TryOpenLauncher("0.0.1-older", worldId)) throw new InvalidOperationException("The requested-version hand-off must start.");
                 deadline.Restart();
                 while ((!File.Exists(arguments) || File.ReadAllLines(arguments).Length < 4) && deadline.Elapsed < TimeSpan.FromSeconds(5))
                     await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-                if (!File.Exists(arguments) || !File.ReadAllLines(arguments).SequenceEqual(new[] { "--", "--choose-version=0.0.1-older", "--player-data", "--choose-world=" + worldId }))
-                    throw new InvalidOperationException("The real launcher process must receive the selected world's version and complete catalog ID.");
+                FailUiCheckIf(!File.Exists(arguments) || !File.ReadAllLines(arguments).SequenceEqual(new[] { "--", "--choose-version=0.0.1-older", "--player-data", "--choose-world=" + worldId }), "The real launcher process must receive the selected world's version and complete catalog ID.");
             }
             GD.Print("Game launch option checks passed: Developer mode off, F1 list, busy quit, missing launcher and version hand-off.");
         }

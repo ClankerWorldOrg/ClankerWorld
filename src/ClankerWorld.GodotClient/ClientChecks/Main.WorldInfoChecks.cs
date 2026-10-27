@@ -52,9 +52,8 @@ public partial class Main
                 !world.Contains("2 living agents", StringComparison.Ordinal) || !world.Contains("1 Town", StringComparison.Ordinal) ||
                 !world.Contains("2 households", StringComparison.Ordinal) || !world.Contains("40-day years", StringComparison.Ordinal))
                 throw new InvalidOperationException($"The World page must show today's date and eight counted tiles: tiles={tiles} text={world.ReplaceLineEndings(" / ")}");
-            if (worldStatsPage.FindChildren("*", nameof(PanelContainer), recursive: true, owned: false).OfType<PanelContainer>()
-                    .FirstOrDefault(cap => cap.GetChildCount() == 1 && cap.GetChild(0) is Label { Text: "F1" }) is null)
-                throw new InvalidOperationException("The World page must point to the controls list with an F1 keycap.");
+            FailUiCheckIf(worldStatsPage.FindChildren("*", nameof(PanelContainer), recursive: true, owned: false).OfType<PanelContainer>()
+                    .FirstOrDefault(cap => cap.GetChildCount() == 1 && cap.GetChild(0) is Label { Text: "F1" }) is null, "The World page must point to the controls list with an F1 keycap.");
 
             await VerifyWorldStatsRefreshAsync(snapshot);
             RenderWorldInfo(snapshot);
@@ -238,15 +237,14 @@ public partial class Main
             RenderWorldStats(changed);
             FailUiCheckIf(!changedIds.SequenceEqual(TileIds()), "An unchanged authoritative count snapshot must reuse its grid.");
             var text = PageText(worldStatsPage);
-            if (!text.Contains($"{LivingPopulation(changed)} living agent", StringComparison.Ordinal) ||
+            FailUiCheckIf(!text.Contains($"{LivingPopulation(changed)} living agent", StringComparison.Ordinal) ||
                 !text.Contains($"{changed.Towns.Count} Town", StringComparison.Ordinal) ||
                 !text.Contains($"{changed.Stockpiles.Count} household", StringComparison.Ordinal) ||
                 !text.Contains($"{changed.PlacedBuildings.Count} building", StringComparison.Ordinal) ||
                 !text.Contains($"{changed.RoadTiles.Count} road tile", StringComparison.Ordinal) ||
                 !text.Contains($"{changed.Bridges.Count} bridge", StringComparison.Ordinal) ||
                 !text.Contains($"{changed.Resources.Count} resource site", StringComparison.Ordinal) ||
-                !text.Contains($"{MapDimensions(changed).Width} × {MapDimensions(changed).Height}", StringComparison.Ordinal))
-                throw new InvalidOperationException("The refreshed grid must display the current authoritative counts.");
+                !text.Contains($"{MapDimensions(changed).Width} × {MapDimensions(changed).Height}", StringComparison.Ordinal), "The refreshed grid must display the current authoritative counts.");
         }
         var savedTheme = UiTheme.Current;
         try

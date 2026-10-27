@@ -42,8 +42,7 @@ public partial class Main
                 portrait.GetPixel(1, 1) == faded.GetPixel(1, 1), "An agent portrait must be a framed 20 px square that fades once the agent has died.");
             var swatch = TileSwatch(map, 0, 0, 10).GetImage();
             FailUiCheckIf(swatch.GetSize() != new Vector2I(12, 12) || swatch.GetPixel(0, 0) != UiTheme.Current.WoodEdge || swatch.GetPixel(5, 5).A < 1, "A tile swatch must show the ground in a one-pixel frame.");
-            if (snapshot.Resources.FirstOrDefault(resource => resource.TreeKind is not null) is { } tree && ResourceSprite(tree) is null)
-                throw new InvalidOperationException("Trees must have a map sprite for panels to show.");
+            FailUiCheckIf(snapshot.Resources.FirstOrDefault(resource => resource.TreeKind is not null) is { } tree && ResourceSprite(tree) is null, "Trees must have a map sprite for panels to show.");
         }
         finally
         {

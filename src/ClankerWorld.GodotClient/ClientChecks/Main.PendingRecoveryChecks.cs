@@ -143,8 +143,7 @@ public partial class Main
                     var focus = GetViewport().GuiGetFocusOwner();
                     FailUiCheckIf(focus is null || !IsKeyboardFocusable(focus) || !scope.IsAncestorOf(focus), "Recovery must return focus to a usable control on the original screen.");
                     await KeyboardKeyAsync(Godot.Key.Tab);
-                    if (GetViewport().GuiGetFocusOwner() is not { } nextFocus || !scope.IsAncestorOf(nextFocus))
-                        throw new InvalidOperationException("Normal screen focus must stay within its menu or Profile after recovery.");
+                    FailUiCheckIf(GetViewport().GuiGetFocusOwner() is not { } nextFocus || !scope.IsAncestorOf(nextFocus), "Normal screen focus must stay within its menu or Profile after recovery.");
                 }
 
             var originalReconnect = host.Reconnect;
