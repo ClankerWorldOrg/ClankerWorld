@@ -345,35 +345,31 @@ public sealed partial class PortBoatRuntimeTests
         Assert.Equal(later.Take(2), plan.Segment.ClosedBoatRequests!);
         Assert.Equal(later.TakeLast(40), plan.State.BoatTransport.Requests.Where(request => request.Id != bound.Id));
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(compacting.World.ExportState()));
-        var directory = Directory.CreateTempSubdirectory("clankerworld-ordered-boat-history-");
-        try
+        using var directory = new BoatHistoryDirectory("clankerworld-ordered-boat-history-");
+        var file = new WorldStateFile(Path.Combine(directory.FullName, "world.json"), policy.CreateProvider);
+        Assert.True(file.Save(compacting.World));
+        Assert.Equal(later.Take(2), ReadArchivedBoatRequests(file));
+        var saved = WorldRuntimeCodec.Encode(compacting.World.ExportState());
+        using var loaded = file.LoadOrCreate(state.WorldSeed);
+        Assert.Equal(saved, WorldRuntimeCodec.Encode(loaded.ExportState()));
+        Assert.Equal(originalOrder, BoatOrder(loaded, receipt));
+        AssertBoatCargoUnchanged(loaded, cargo.Id, cargo.OwnerId, cargo.Quantity);
+        Assert.False((await compacting.World.AdvanceOneTickAsync(() => false)).Advanced);
+        Assert.Equal(saved, WorldRuntimeCodec.Encode(compacting.World.ExportState()));
+        var replayPolicy = new BoatPolicy();
+        replayPolicy.IdleActors.UnionWith(Blockers);
+        using var replay = new BoatScenario(WorldRuntimeCodec.Decode(saved), replayPolicy);
+        for (var tick = 0; tick < 2; tick++)
         {
-            var file = new WorldStateFile(Path.Combine(directory.FullName, "world.json"), policy.CreateProvider);
-            Assert.True(file.Save(compacting.World));
-            Assert.Equal(later.Take(2), ReadArchivedBoatRequests(file));
-            var saved = WorldRuntimeCodec.Encode(compacting.World.ExportState());
-            using var loaded = file.LoadOrCreate(state.WorldSeed);
-            Assert.Equal(saved, WorldRuntimeCodec.Encode(loaded.ExportState()));
-            Assert.Equal(originalOrder, BoatOrder(loaded, receipt));
-            AssertBoatCargoUnchanged(loaded, cargo.Id, cargo.OwnerId, cargo.Quantity);
-            Assert.False((await compacting.World.AdvanceOneTickAsync(() => false)).Advanced);
-            Assert.Equal(saved, WorldRuntimeCodec.Encode(compacting.World.ExportState()));
-            var replayPolicy = new BoatPolicy();
-            replayPolicy.IdleActors.UnionWith(Blockers);
-            using var replay = new BoatScenario(WorldRuntimeCodec.Decode(saved), replayPolicy);
-            for (var tick = 0; tick < 2; tick++)
-            {
-                Assert.True((await compacting.World.AdvanceOneTickAsync()).Advanced);
-                Assert.True((await replay.World.AdvanceOneTickAsync()).Advanced);
-                Assert.Equal(WorldRuntimeCodec.Encode(compacting.World.ExportState()),
-                    WorldRuntimeCodec.Encode(replay.World.ExportState()));
-                Assert.Equal(originalOrder.CompletedUnits, BoatOrder(compacting.World, receipt).CompletedUnits);
-            }
-            AssertBoatCargoUnchanged(compacting.World, cargo.Id, cargo.OwnerId, cargo.Quantity);
-            compacting.World.Validate();
-            replay.World.Validate();
+            Assert.True((await compacting.World.AdvanceOneTickAsync()).Advanced);
+            Assert.True((await replay.World.AdvanceOneTickAsync()).Advanced);
+            Assert.Equal(WorldRuntimeCodec.Encode(compacting.World.ExportState()),
+                WorldRuntimeCodec.Encode(replay.World.ExportState()));
+            Assert.Equal(originalOrder.CompletedUnits, BoatOrder(compacting.World, receipt).CompletedUnits);
         }
-        finally { directory.Delete(recursive: true); }
+        AssertBoatCargoUnchanged(compacting.World, cargo.Id, cargo.OwnerId, cargo.Quantity);
+        compacting.World.Validate();
+        replay.World.Validate();
     }
 
     private static string BoatOrderDestination(WorldRuntime world) =>

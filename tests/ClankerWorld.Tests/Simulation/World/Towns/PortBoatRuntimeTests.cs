@@ -213,29 +213,9 @@ public sealed partial class PortBoatRuntimeTests
         var policy = new BoatPolicy { LeaveToTown = settleTownWill };
         policy.IdleActors.Add(BoatPolicy.Author);
         var state = WorldRuntimeCodec.Decode(await Underway.Value);
-        var checkpoint = state.Society.Society;
-        var maximum = checkpoint.Config.DayLifecycle!.MaximumDay;
-        var birth = checkpoint.LifeTickAt(checkpoint.WorldTick + 1) - maximum * checkpoint.Config.TicksPerLifecycleAge;
-        // Start from a genuinely paid and boarded voyage, with an elder's next
-        // age boundary due. Native mortality creates the death and estate.
-        state = state with
-        {
-            Society = state.Society with
-            {
-                Society = checkpoint with
-                {
-                    Inventory = InventoryAuthority.AddLot(checkpoint.Inventory, "aboard-bequest-wood", "wood", BoatPolicy.Author, 2),
-                    Config = checkpoint.Config with { BaseNaturalMortalityBasisPoints = 0, NaturalMortalitySlopeBasisPoints = 0 },
-                    Agents = checkpoint.Agents.Select(person => person.Id == BoatPolicy.Author ? person with
-                    {
-                        BirthTick = checkpoint.LifeClock is null ? birth : person.BirthTick,
-                        BirthLifeTick = checkpoint.LifeClock is null ? null : birth,
-                        AgeBand = SocietyAgeBand.Elder,
-                        LastLifecycleYearChecked = maximum - 1,
-                    } : person).ToArray(),
-                },
-            },
-        };
+        // Keep the actual paid voyage and bequest stock; native mortality creates the death and estate.
+        state = RawInventoryTestState.WithInventory(WithNativePassengerDeath(state),
+            InventoryAuthority.AddLot(state.Society.Society.Inventory, "aboard-bequest-wood", "wood", BoatPolicy.Author, 2));
         using var scenario = new BoatScenario(state, policy);
         var boatId = scenario.World.Boats[0].Id;
         await scenario.UntilAsync(() => (scenario.World.ExportState().DeceasedAgents ?? [])

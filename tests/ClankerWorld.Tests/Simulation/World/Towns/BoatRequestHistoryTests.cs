@@ -12,6 +12,35 @@ public sealed partial class PortBoatRuntimeTests
     private sealed record NativeBoatHistory(byte[] Bytes, IReadOnlyList<BoatTripRequest> Cancelled,
         BoatTripRequest Waiting, string OriginalBoat);
     private static readonly Lazy<Task<NativeBoatHistory>> ClosedBoatHistory = new(BuildClosedBoatHistoryAsync);
+    private static readonly Lazy<Task<(byte[] Bytes, GridPoint BlockedLanding)>> HistoryDeparture = new(BuildHistoryDepartureAsync);
+
+    private sealed class BoatHistoryDirectory(string prefix) : IDisposable
+    {
+        private readonly DirectoryInfo directory = Directory.CreateTempSubdirectory(prefix);
+        internal string FullName => directory.FullName;
+        public void Dispose() => directory.Delete(recursive: true);
+    }
+
+    private static readonly Lazy<Task<IReadOnlyDictionary<string, byte[]>>> HealthyBoatFiles = new(async () =>
+    {
+        using var directory = new BoatHistoryDirectory("clankerworld-healthy-boat-history-");
+        using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode((await ClosedBoatHistory.Value).Bytes));
+        var file = new WorldStateFile(Path.Combine(directory.FullName, "world.json"));
+        Assert.True(file.Save(world));
+        return Directory.GetFiles(directory.FullName, "*", SearchOption.AllDirectories)
+            .ToDictionary(path => Path.GetRelativePath(directory.FullName, path), File.ReadAllBytes);
+    });
+
+    private static async Task<WorldStateFile> CopyHealthyBoatHistory(BoatHistoryDirectory directory)
+    {
+        foreach (var (relative, bytes) in await HealthyBoatFiles.Value)
+        {
+            var path = Path.Combine(directory.FullName, relative);
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            File.WriteAllBytes(path, bytes);
+        }
+        return new(Path.Combine(directory.FullName, "world.json"));
+    }
 
     [Fact]
     public async Task RepeatedNativeCancellationsKeepARecentWindowAndAnOlderWaitingRequest()
@@ -38,63 +67,59 @@ public sealed partial class PortBoatRuntimeTests
     public async Task ArchivedBoatOutcomesReloadReplayAndExtendWithoutLosingTheOlderQueue()
     {
         var history = await ClosedBoatHistory.Value;
-        var directory = Directory.CreateTempSubdirectory("clankerworld-boat-history-");
-        try
+        using var directory = new BoatHistoryDirectory("clankerworld-boat-history-");
+        var policy = HistoryBoatPolicy();
+        using var scenario = new BoatScenario(WorldRuntimeCodec.Decode(history.Bytes), policy);
+        var file = new WorldStateFile(Path.Combine(directory.FullName, "world.json"), policy.CreateProvider);
+        var visible = JsonSerializer.Serialize(new OwnerWorldObservationStore(scenario.World).GetSnapshot().BoatRequests);
+        Assert.True(file.Save(scenario.World));
+        var compacted = scenario.World.ExportState();
+        Assert.Equal(41, compacted.BoatTransport.Requests.Count);
+        Assert.Equal(visible, JsonSerializer.Serialize(new OwnerWorldObservationStore(scenario.World).GetSnapshot().BoatRequests));
+        Assert.Equal(history.Cancelled.Take(4), ReadArchivedBoatRequests(file));
+        var bytes = WorldRuntimeCodec.Encode(compacted);
+        Assert.Equal(bytes, File.ReadAllBytes(file.Path));
+        Assert.False((await scenario.World.AdvanceOneTickAsync(() => false)).Advanced);
+        Assert.Equal(bytes, WorldRuntimeCodec.Encode(scenario.World.ExportState()));
+        var replayPolicy = HistoryBoatPolicy();
+        using var replay = new BoatScenario(WorldRuntimeCodec.Decode(bytes), replayPolicy);
+        using var loaded = file.LoadOrCreate(compacted.WorldSeed);
+        Assert.Equal(bytes, WorldRuntimeCodec.Encode(loaded.ExportState()));
+        for (var step = 0; step < 3; step++)
         {
-            var policy = HistoryBoatPolicy();
-            using var scenario = new BoatScenario(WorldRuntimeCodec.Decode(history.Bytes), policy);
-            var file = new WorldStateFile(Path.Combine(directory.FullName, "world.json"), policy.CreateProvider);
-            var visible = JsonSerializer.Serialize(new OwnerWorldObservationStore(scenario.World).GetSnapshot().BoatRequests);
-            Assert.True(file.Save(scenario.World));
-            var compacted = scenario.World.ExportState();
-            Assert.Equal(41, compacted.BoatTransport.Requests.Count);
-            Assert.Equal(visible, JsonSerializer.Serialize(new OwnerWorldObservationStore(scenario.World).GetSnapshot().BoatRequests));
-            Assert.Equal(history.Cancelled.Take(4), ReadArchivedBoatRequests(file));
-            var bytes = WorldRuntimeCodec.Encode(compacted);
-            Assert.Equal(bytes, File.ReadAllBytes(file.Path));
-            Assert.False((await scenario.World.AdvanceOneTickAsync(() => false)).Advanced);
-            Assert.Equal(bytes, WorldRuntimeCodec.Encode(scenario.World.ExportState()));
-            var replayPolicy = HistoryBoatPolicy();
-            using var replay = new BoatScenario(WorldRuntimeCodec.Decode(bytes), replayPolicy);
-            using var loaded = file.LoadOrCreate(compacted.WorldSeed);
-            Assert.Equal(bytes, WorldRuntimeCodec.Encode(loaded.ExportState()));
-            for (var step = 0; step < 3; step++)
-            {
-                Assert.True((await scenario.World.AdvanceOneTickAsync()).Advanced);
-                Assert.True((await replay.World.AdvanceOneTickAsync()).Advanced);
-                Assert.Equal(WorldRuntimeCodec.Encode(scenario.World.ExportState()),
-                    WorldRuntimeCodec.Encode(replay.World.ExportState()));
-            }
-            policy.Trips = true;
-            await scenario.UntilAsync(() => scenario.World.BoatRequests.Any(request =>
-                request.PassengerId == Follower && request.Status == "waiting"), 120);
-            var next = Assert.Single(scenario.World.BoatRequests, request => request.PassengerId == Follower && request.Status == "waiting");
-            Assert.Equal(46, next.Sequence);
-            policy.Trips = false;
-            policy.CancelWaiting = true;
-            await scenario.UntilAsync(() => scenario.World.BoatRequests.Any(request => request.Id == next.Id && request.Status == "cancelled"), 8);
-            Assert.True(file.Save(scenario.World));
-            Assert.Equal(new RetiredBoatRequestRange(2, 6), Assert.Single(scenario.World.ExportState().BoatTransport.RetiredRequestRanges));
-            Assert.Equal(history.Cancelled.Take(5), ReadArchivedBoatRequests(file));
-            Assert.Equal(history.Waiting, Assert.Single(scenario.World.BoatRequests, request => request.Id == history.Waiting.Id));
-            Assert.Equal(history.OriginalBoat, JsonSerializer.Serialize(Assert.Single(scenario.World.Boats)));
-            using var extended = file.LoadOrCreate(compacted.WorldSeed);
-            Assert.Equal(WorldRuntimeCodec.Encode(scenario.World.ExportState()), WorldRuntimeCodec.Encode(extended.ExportState()));
-            var checkpoint = File.ReadAllBytes(file.Path);
-            var head = JsonSerializer.Deserialize<WorldHistorySegment>(File.ReadAllBytes(
-                Path.Combine(file.Path + ".history", extended.ExportState().HistoryArchiveHead + ".json")))!;
-            Assert.Equal(compacted.HistoryArchiveHead, head.Parent);
-            var archive = Path.Combine(file.Path + ".history", compacted.HistoryArchiveHead + ".json");
-            var original = File.ReadAllBytes(archive);
-            File.Delete(archive);
-            Assert.Throws<FileNotFoundException>(() => file.LoadOrCreate(compacted.WorldSeed));
-            Assert.Equal(checkpoint, File.ReadAllBytes(file.Path));
-            File.WriteAllBytes(archive, original);
-            File.WriteAllText(archive, "corrupt");
-            Assert.Throws<InvalidDataException>(() => file.LoadOrCreate(compacted.WorldSeed));
-            Assert.Equal(checkpoint, File.ReadAllBytes(file.Path));
+            Assert.True((await scenario.World.AdvanceOneTickAsync()).Advanced);
+            Assert.True((await replay.World.AdvanceOneTickAsync()).Advanced);
+            Assert.Equal(WorldRuntimeCodec.Encode(scenario.World.ExportState()),
+                WorldRuntimeCodec.Encode(replay.World.ExportState()));
         }
-        finally { directory.Delete(recursive: true); }
+        policy.Trips = true;
+        await scenario.UntilAsync(() => scenario.World.BoatRequests.Any(request =>
+            request.PassengerId == Follower && request.Status == "waiting"), 120);
+        var next = Assert.Single(scenario.World.BoatRequests, request => request.PassengerId == Follower && request.Status == "waiting");
+        Assert.Equal(46, next.Sequence);
+        policy.Trips = false;
+        policy.CancelWaiting = true;
+        await scenario.UntilAsync(() => scenario.World.BoatRequests.Any(request => request.Id == next.Id && request.Status == "cancelled"), 8);
+        Assert.True(file.Save(scenario.World));
+        Assert.Equal(new RetiredBoatRequestRange(2, 6), Assert.Single(scenario.World.ExportState().BoatTransport.RetiredRequestRanges));
+        Assert.Equal(history.Cancelled.Take(5), ReadArchivedBoatRequests(file));
+        Assert.Equal(history.Waiting, Assert.Single(scenario.World.BoatRequests, request => request.Id == history.Waiting.Id));
+        Assert.Equal(history.OriginalBoat, JsonSerializer.Serialize(Assert.Single(scenario.World.Boats)));
+        using var extended = file.LoadOrCreate(compacted.WorldSeed);
+        Assert.Equal(WorldRuntimeCodec.Encode(scenario.World.ExportState()), WorldRuntimeCodec.Encode(extended.ExportState()));
+        var checkpoint = File.ReadAllBytes(file.Path);
+        var head = JsonSerializer.Deserialize<WorldHistorySegment>(File.ReadAllBytes(
+            Path.Combine(file.Path + ".history", extended.ExportState().HistoryArchiveHead + ".json")))!;
+        Assert.Equal(compacted.HistoryArchiveHead, head.Parent);
+        var archive = Path.Combine(file.Path + ".history", compacted.HistoryArchiveHead + ".json");
+        var original = File.ReadAllBytes(archive);
+        File.Delete(archive);
+        Assert.Throws<FileNotFoundException>(() => file.LoadOrCreate(compacted.WorldSeed));
+        Assert.Equal(checkpoint, File.ReadAllBytes(file.Path));
+        File.WriteAllBytes(archive, original);
+        File.WriteAllText(archive, "corrupt");
+        Assert.Throws<InvalidDataException>(() => file.LoadOrCreate(compacted.WorldSeed));
+        Assert.Equal(checkpoint, File.ReadAllBytes(file.Path));
     }
 
     [Theory]
@@ -103,28 +128,24 @@ public sealed partial class PortBoatRuntimeTests
     public async Task FailedBoatHistoryWriteKeepsTheLiveQueueAndPreviousCheckpoint(bool failCheckpoint)
     {
         var history = await ClosedBoatHistory.Value;
-        var directory = Directory.CreateTempSubdirectory("clankerworld-boat-history-failure-");
-        try
+        using var directory = new BoatHistoryDirectory("clankerworld-boat-history-failure-");
+        using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(history.Bytes));
+        var file = new WorldStateFile(Path.Combine(directory.FullName, "world.json"));
+        File.WriteAllBytes(file.Path, history.Bytes);
+        if (failCheckpoint)
         {
-            using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(history.Bytes));
-            var file = new WorldStateFile(Path.Combine(directory.FullName, "world.json"));
-            File.WriteAllBytes(file.Path, history.Bytes);
-            if (failCheckpoint)
-            {
-                File.Move(file.Path, file.Path + ".previous");
-                Directory.CreateDirectory(file.Path);
-            }
-            else File.WriteAllText(file.Path + ".history", "block archive directory creation");
-            Assert.Throws<IOException>(() => file.Save(world));
-            Assert.Equal(history.Bytes, WorldRuntimeCodec.Encode(world.ExportState()));
-            Assert.Equal(history.Bytes, File.ReadAllBytes(failCheckpoint ? file.Path + ".previous" : file.Path));
-            Assert.Empty(world.ExportState().BoatTransport.RetiredRequestRanges);
-            if (failCheckpoint)
-                Assert.Equal(history.Cancelled.Take(4), Directory.GetFiles(file.Path + ".history", "*.json")
-                    .SelectMany(path => JsonSerializer.Deserialize<WorldHistorySegment>(File.ReadAllBytes(path))!.ClosedBoatRequests ?? [])
-                    .OrderBy(request => request.Sequence).ToArray());
+            File.Move(file.Path, file.Path + ".previous");
+            Directory.CreateDirectory(file.Path);
         }
-        finally { directory.Delete(recursive: true); }
+        else File.WriteAllText(file.Path + ".history", "block archive directory creation");
+        Assert.Throws<IOException>(() => file.Save(world));
+        Assert.Equal(history.Bytes, WorldRuntimeCodec.Encode(world.ExportState()));
+        Assert.Equal(history.Bytes, File.ReadAllBytes(failCheckpoint ? file.Path + ".previous" : file.Path));
+        Assert.Empty(world.ExportState().BoatTransport.RetiredRequestRanges);
+        if (failCheckpoint)
+            Assert.Equal(history.Cancelled.Take(4), Directory.GetFiles(file.Path + ".history", "*.json")
+                .SelectMany(path => JsonSerializer.Deserialize<WorldHistorySegment>(File.ReadAllBytes(path))!.ClosedBoatRequests ?? [])
+                .OrderBy(request => request.Sequence).ToArray());
     }
 
     [Theory]
@@ -142,38 +163,31 @@ public sealed partial class PortBoatRuntimeTests
     [InlineData("missing-archive")]
     public async Task DamagedBoatRetirementAuthorityIsRefused(string damage)
     {
-        var history = await ClosedBoatHistory.Value;
-        var directory = Directory.CreateTempSubdirectory("clankerworld-boat-history-damage-");
-        try
+        using var directory = new BoatHistoryDirectory("clankerworld-boat-history-damage-");
+        var file = await CopyHealthyBoatHistory(directory);
+        var original = File.ReadAllBytes(file.Path);
+        var document = JsonNode.Parse(original)!;
+        var state = document["state"]!;
+        var transport = state["boatTransport"]!;
+        var ranges = damage switch
         {
-            using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(history.Bytes));
-            var file = new WorldStateFile(Path.Combine(directory.FullName, "world.json"));
-            Assert.True(file.Save(world));
-            var original = File.ReadAllBytes(file.Path);
-            var document = JsonNode.Parse(original)!;
-            var state = document["state"]!;
-            var transport = state["boatTransport"]!;
-            var ranges = damage switch
-            {
-                "zero" => "[{\"firstSequence\":0,\"lastSequence\":5}]",
-                "reversed" => "[{\"firstSequence\":6,\"lastSequence\":5}]",
-                "future" => "[{\"firstSequence\":2,\"lastSequence\":46}]",
-                "adjacent" => "[{\"firstSequence\":2,\"lastSequence\":3},{\"firstSequence\":4,\"lastSequence\":5}]",
-                "overlap" => "[{\"firstSequence\":2,\"lastSequence\":5},{\"firstSequence\":4,\"lastSequence\":5}]",
-                "unordered" => "[{\"firstSequence\":5,\"lastSequence\":5},{\"firstSequence\":2,\"lastSequence\":3}]",
-                "live-collision" => "[{\"firstSequence\":1,\"lastSequence\":5}]",
-                "gap" => "[{\"firstSequence\":2,\"lastSequence\":4}]",
-                _ => null,
-            };
-            if (ranges is not null) transport["retiredRequestRanges"] = JsonNode.Parse(ranges);
-            else if (damage == "missing") transport.AsObject().Remove("retiredRequestRanges");
-            else if (damage == "null") transport["retiredRequestRanges"] = null;
-            else if (damage == "missing-waiting") transport["requests"]!.AsArray().RemoveAt(0);
-            else if (damage == "missing-archive") state["historyArchiveHead"] = null;
-            Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Decode(System.Text.Encoding.UTF8.GetBytes(document.ToJsonString())));
-            Assert.Equal(original, File.ReadAllBytes(file.Path));
-        }
-        finally { directory.Delete(recursive: true); }
+            "zero" => "[{\"firstSequence\":0,\"lastSequence\":5}]",
+            "reversed" => "[{\"firstSequence\":6,\"lastSequence\":5}]",
+            "future" => "[{\"firstSequence\":2,\"lastSequence\":46}]",
+            "adjacent" => "[{\"firstSequence\":2,\"lastSequence\":3},{\"firstSequence\":4,\"lastSequence\":5}]",
+            "overlap" => "[{\"firstSequence\":2,\"lastSequence\":5},{\"firstSequence\":4,\"lastSequence\":5}]",
+            "unordered" => "[{\"firstSequence\":5,\"lastSequence\":5},{\"firstSequence\":2,\"lastSequence\":3}]",
+            "live-collision" => "[{\"firstSequence\":1,\"lastSequence\":5}]",
+            "gap" => "[{\"firstSequence\":2,\"lastSequence\":4}]",
+            _ => null,
+        };
+        if (ranges is not null) transport["retiredRequestRanges"] = JsonNode.Parse(ranges);
+        else if (damage == "missing") transport.AsObject().Remove("retiredRequestRanges");
+        else if (damage == "null") transport["retiredRequestRanges"] = null;
+        else if (damage == "missing-waiting") transport["requests"]!.AsArray().RemoveAt(0);
+        else if (damage == "missing-archive") state["historyArchiveHead"] = null;
+        Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Decode(System.Text.Encoding.UTF8.GetBytes(document.ToJsonString())));
+        Assert.Equal(original, File.ReadAllBytes(file.Path));
     }
 
     [Theory]
@@ -183,10 +197,72 @@ public sealed partial class PortBoatRuntimeTests
     public async Task AnOlderVoyageRetainsItsBindingAndArchivesItsFinalOutcome(string outcome)
     {
         var history = await ClosedBoatHistory.Value;
-        var policy = HistoryBoatPolicy();
-        policy.IdleActors.Remove(BoatPolicy.Author);
-        policy.Trips = true;
-        policy.TripActor = BoatPolicy.Author;
+        var prepared = await HistoryDeparture.Value;
+        var policy = HistoryBoatPolicy(departing: true);
+        policy.IdleActors.Remove(Blockers[0]);
+        using var departure = new BoatScenario(WorldRuntimeCodec.Decode(prepared.Bytes), policy);
+        var blockedLanding = prepared.BlockedLanding;
+        if (outcome != "arrived")
+        {
+            departure.World.SubmitInstruction(new("reblock-history-landing", "owner:test", Blockers[0],
+                OwnerInstructionKind.Order, $"move to {blockedLanding.X},{blockedLanding.Y}"));
+            await departure.UntilAsync(() => departure.World.Agents.Single(person =>
+                person.AgentId == Blockers[0]).Position == blockedLanding, 30);
+        }
+        var state = departure.World.ExportState();
+        if (outcome == "death")
+        {
+            state = WithNativePassengerDeath(state);
+        }
+        policy.Trips = false;
+        policy.IdleActors.Add(BoatPolicy.Author);
+        policy.IdleActors.Add(Blockers[0]);
+        using var voyage = new BoatScenario(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), policy);
+        using var directory = new BoatHistoryDirectory("clankerworld-boat-voyage-history-");
+        var file = new WorldStateFile(Path.Combine(directory.FullName, "world.json"), policy.CreateProvider);
+        var boat = JsonSerializer.Serialize(Assert.Single(voyage.World.Boats));
+        Assert.True(file.Save(voyage.World));
+        Assert.Equal(boat, JsonSerializer.Serialize(Assert.Single(voyage.World.Boats)));
+        Assert.Equal("underway", Assert.Single(voyage.World.BoatRequests, request => request.Id == history.Waiting.Id).Status);
+        Assert.Equal(41, voyage.World.BoatRequests.Count);
+        Assert.Equal(history.Cancelled.Take(4), ReadArchivedBoatRequests(file));
+        var bytes = WorldRuntimeCodec.Encode(voyage.World.ExportState());
+        Assert.False((await voyage.World.AdvanceOneTickAsync(() => false)).Advanced);
+        Assert.Equal(bytes, WorldRuntimeCodec.Encode(voyage.World.ExportState()));
+        if (outcome == "death")
+        {
+            await voyage.UntilAsync(() => (voyage.World.ExportState().DeceasedAgents ?? []).Any(person =>
+                person.AgentId == BoatPolicy.Author), 4);
+            Assert.Contains("travel-jug", voyage.World.Boats[0].GroundCargoLotIds!);
+            _ = file.Save(voyage.World);
+            using var restored = file.LoadOrCreate(state.WorldSeed);
+            Assert.Equal(WorldRuntimeCodec.Encode(voyage.World.ExportState()), WorldRuntimeCodec.Encode(restored.ExportState()));
+            Assert.Contains("travel-jug", restored.Boats[0].GroundCargoLotIds!);
+        }
+        await voyage.UntilAsync(() => voyage.World.Boats[0].Journey is null, 120);
+        var finished = Assert.Single(voyage.World.BoatRequests, request => request.Id == history.Waiting.Id);
+        Assert.Equal(outcome == "arrived" ? "arrived" : "returned", finished.Status);
+        Assert.True(file.Save(voyage.World));
+        Assert.Equal(40, voyage.World.BoatRequests.Count);
+        Assert.Equal(new RetiredBoatRequestRange(1, 5), Assert.Single(voyage.World.ExportState().BoatTransport.RetiredRequestRanges));
+        Assert.Equal(new[] { finished }.Concat(history.Cancelled.Take(4)), ReadArchivedBoatRequests(file));
+        using var complete = file.LoadOrCreate(state.WorldSeed);
+        Assert.Equal(WorldRuntimeCodec.Encode(voyage.World.ExportState()), WorldRuntimeCodec.Encode(complete.ExportState()));
+        if (outcome == "death")
+        {
+            var jug = complete.Society.Inventory.GetLot("travel-jug");
+            var water = complete.Society.Inventory.GetLot("travel-water");
+            Assert.Equal(jug.Id, water.ContainerLotId);
+            Assert.Equal(jug.OwnerId, water.OwnerId);
+            Assert.Null(water.GroundPosition);
+            Assert.NotNull(jug.GroundPosition);
+        }
+    }
+
+    private static async Task<(byte[] Bytes, GridPoint BlockedLanding)> BuildHistoryDepartureAsync()
+    {
+        var history = await ClosedBoatHistory.Value;
+        var policy = HistoryBoatPolicy(departing: true);
         using var departure = new BoatScenario(WorldRuntimeCodec.Decode(history.Bytes), policy);
         var origin = departure.World.WorldSimulation.Buildings.Single(port => port.InstanceId == departure.World.Boats[0].DockedPortId);
         departure.World.SubmitInstruction(new("return-history-traveler", "owner:test", BoatPolicy.Author,
@@ -198,90 +274,37 @@ public sealed partial class PortBoatRuntimeTests
             OwnerInstructionKind.Order, MoveAwayFromPorts(departure.World)));
         policy.IdleActors.Remove(Blockers[0]);
         await departure.UntilAsync(() => departure.World.Boats[0].Journey is not null, 30);
-        if (outcome != "arrived")
-        {
-            departure.World.SubmitInstruction(new("reblock-history-landing", "owner:test", Blockers[0],
-                OwnerInstructionKind.Order, $"move to {blockedLanding.X},{blockedLanding.Y}"));
-            await departure.UntilAsync(() => departure.World.Agents.Single(person =>
-                person.AgentId == Blockers[0]).Position == blockedLanding, 30);
-        }
-        var state = departure.World.ExportState();
-        if (outcome == "death")
-        {
-            var checkpoint = state.Society.Society;
-            var maximum = checkpoint.Config.DayLifecycle!.MaximumDay;
-            var birth = checkpoint.LifeTickAt(checkpoint.WorldTick + 1) - maximum * checkpoint.Config.TicksPerLifecycleAge;
-            state = state with
-            {
-                Society = state.Society with
-                {
-                    Society = checkpoint with
-                    {
-                        Config = checkpoint.Config with { BaseNaturalMortalityBasisPoints = 0, NaturalMortalitySlopeBasisPoints = 0 },
-                        Agents = checkpoint.Agents.Select(person => person.Id == BoatPolicy.Author ? person with
-                        {
-                            BirthTick = checkpoint.LifeClock is null ? birth : person.BirthTick,
-                            BirthLifeTick = checkpoint.LifeClock is null ? null : birth,
-                            AgeBand = SocietyAgeBand.Elder,
-                            LastLifecycleYearChecked = maximum - 1,
-                        } : person).ToArray(),
-                    },
-                },
-            };
-        }
-        policy.Trips = false;
-        policy.IdleActors.Add(BoatPolicy.Author);
-        policy.IdleActors.Add(Blockers[0]);
-        using var voyage = new BoatScenario(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), policy);
-        var directory = Directory.CreateTempSubdirectory("clankerworld-boat-voyage-history-");
-        try
-        {
-            var file = new WorldStateFile(Path.Combine(directory.FullName, "world.json"), policy.CreateProvider);
-            var boat = JsonSerializer.Serialize(Assert.Single(voyage.World.Boats));
-            Assert.True(file.Save(voyage.World));
-            Assert.Equal(boat, JsonSerializer.Serialize(Assert.Single(voyage.World.Boats)));
-            Assert.Equal("underway", Assert.Single(voyage.World.BoatRequests, request => request.Id == history.Waiting.Id).Status);
-            Assert.Equal(41, voyage.World.BoatRequests.Count);
-            Assert.Equal(history.Cancelled.Take(4), ReadArchivedBoatRequests(file));
-            var bytes = WorldRuntimeCodec.Encode(voyage.World.ExportState());
-            Assert.False((await voyage.World.AdvanceOneTickAsync(() => false)).Advanced);
-            Assert.Equal(bytes, WorldRuntimeCodec.Encode(voyage.World.ExportState()));
-            if (outcome == "death")
-            {
-                await voyage.UntilAsync(() => (voyage.World.ExportState().DeceasedAgents ?? []).Any(person =>
-                    person.AgentId == BoatPolicy.Author), 4);
-                Assert.Contains("travel-jug", voyage.World.Boats[0].GroundCargoLotIds!);
-                _ = file.Save(voyage.World);
-                using var restored = file.LoadOrCreate(state.WorldSeed);
-                Assert.Equal(WorldRuntimeCodec.Encode(voyage.World.ExportState()), WorldRuntimeCodec.Encode(restored.ExportState()));
-                Assert.Contains("travel-jug", restored.Boats[0].GroundCargoLotIds!);
-            }
-            await voyage.UntilAsync(() => voyage.World.Boats[0].Journey is null, 120);
-            var finished = Assert.Single(voyage.World.BoatRequests, request => request.Id == history.Waiting.Id);
-            Assert.Equal(outcome == "arrived" ? "arrived" : "returned", finished.Status);
-            Assert.True(file.Save(voyage.World));
-            Assert.Equal(40, voyage.World.BoatRequests.Count);
-            Assert.Equal(new RetiredBoatRequestRange(1, 5), Assert.Single(voyage.World.ExportState().BoatTransport.RetiredRequestRanges));
-            Assert.Equal(new[] { finished }.Concat(history.Cancelled.Take(4)), ReadArchivedBoatRequests(file));
-            using var complete = file.LoadOrCreate(state.WorldSeed);
-            Assert.Equal(WorldRuntimeCodec.Encode(voyage.World.ExportState()), WorldRuntimeCodec.Encode(complete.ExportState()));
-            if (outcome == "death")
-            {
-                var jug = complete.Society.Inventory.GetLot("travel-jug");
-                var water = complete.Society.Inventory.GetLot("travel-water");
-                Assert.Equal(jug.Id, water.ContainerLotId);
-                Assert.Equal(jug.OwnerId, water.OwnerId);
-                Assert.Null(water.GroundPosition);
-                Assert.NotNull(jug.GroundPosition);
-            }
-        }
-        finally { directory.Delete(recursive: true); }
+        return (WorldRuntimeCodec.Encode(departure.World.ExportState()), blockedLanding);
     }
 
-    private static BoatPolicy HistoryBoatPolicy()
+    private static WorldRuntimeState WithNativePassengerDeath(WorldRuntimeState state)
     {
-        var policy = new BoatPolicy { TripActor = Follower };
-        policy.IdleActors.Add(BoatPolicy.Author);
+        var checkpoint = state.Society.Society;
+        var maximum = checkpoint.Config.DayLifecycle!.MaximumDay;
+        var birth = checkpoint.LifeTickAt(checkpoint.WorldTick + 1) - maximum * checkpoint.Config.TicksPerLifecycleAge;
+        return state with
+        {
+            Society = state.Society with
+            {
+                Society = checkpoint with
+                {
+                    Config = checkpoint.Config with { BaseNaturalMortalityBasisPoints = 0, NaturalMortalitySlopeBasisPoints = 0 },
+                    Agents = checkpoint.Agents.Select(person => person.Id == BoatPolicy.Author ? person with
+                    {
+                        BirthTick = checkpoint.LifeClock is null ? birth : person.BirthTick,
+                        BirthLifeTick = checkpoint.LifeClock is null ? null : birth,
+                        AgeBand = SocietyAgeBand.Elder,
+                        LastLifecycleYearChecked = maximum - 1,
+                    } : person).ToArray(),
+                },
+            },
+        };
+    }
+
+    private static BoatPolicy HistoryBoatPolicy(bool departing = false)
+    {
+        var policy = new BoatPolicy { TripActor = departing ? BoatPolicy.Author : Follower, Trips = departing };
+        if (!departing) policy.IdleActors.Add(BoatPolicy.Author);
         foreach (var blocker in Blockers) policy.IdleActors.Add(blocker);
         return policy;
     }
@@ -294,46 +317,41 @@ public sealed partial class PortBoatRuntimeTests
     public async Task ReachableBoatArchiveMustMatchRetirementBeforeLoading(string damage)
     {
         var history = await ClosedBoatHistory.Value;
-        var directory = Directory.CreateTempSubdirectory("clankerworld-boat-archive-authority-");
-        try
-        {
-            using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(history.Bytes));
-            var file = new WorldStateFile(Path.Combine(directory.FullName, "world.json"));
-            Assert.True(file.Save(world));
-            var healthy = File.ReadAllBytes(file.Path);
-            var checkpoint = world.ExportState();
-            if (damage == "missing-waiting")
-                checkpoint = checkpoint with
-                {
-                    BoatTransport = checkpoint.BoatTransport with
-                    {
-                        Requests = checkpoint.BoatTransport.Requests.Skip(1).ToArray(),
-                        RetiredRequestRanges = [new(1, 5)],
-                    },
-                };
-            else
+        using var directory = new BoatHistoryDirectory("clankerworld-boat-archive-authority-");
+        var file = await CopyHealthyBoatHistory(directory);
+        var healthy = File.ReadAllBytes(file.Path);
+        using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(healthy));
+        var checkpoint = world.ExportState();
+        if (damage == "missing-waiting")
+            checkpoint = checkpoint with
             {
-                var records = history.Cancelled.Take(4).ToArray();
-                var segment = damage switch
+                BoatTransport = checkpoint.BoatTransport with
                 {
-                    "unrelated-head" => new WorldHistorySegment(null, []),
-                    "duplicate-record" => new WorldHistorySegment(null, [], [.. records, records[0]]),
-                    _ => new WorldHistorySegment(null, [], [records[0] with { Status = "waiting", SettledTick = null }, .. records.Skip(1)]),
-                };
-                var bytes = JsonSerializer.SerializeToUtf8Bytes(segment);
-                var digest = Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(bytes));
-                File.WriteAllBytes(Path.Combine(file.Path + ".history", digest + ".json"), bytes);
-                checkpoint = checkpoint with { HistoryArchiveHead = digest };
-            }
-            var damaged = WorldRuntimeCodec.Encode(checkpoint);
-            Assert.Throws<InvalidDataException>(() => file.VerifyRequiredHistory(checkpoint));
-            Assert.Equal(healthy, File.ReadAllBytes(file.Path));
-            File.WriteAllBytes(file.Path, damaged);
-            Assert.Throws<InvalidDataException>(() => file.LoadOrCreate(checkpoint.WorldSeed));
-            Assert.Equal(damaged, File.ReadAllBytes(file.Path));
-            Assert.Equal(healthy, WorldRuntimeCodec.Encode(world.ExportState()));
+                    Requests = checkpoint.BoatTransport.Requests.Skip(1).ToArray(),
+                    RetiredRequestRanges = [new(1, 5)],
+                },
+            };
+        else
+        {
+            var records = history.Cancelled.Take(4).ToArray();
+            var segment = damage switch
+            {
+                "unrelated-head" => new WorldHistorySegment(null, []),
+                "duplicate-record" => new WorldHistorySegment(null, [], [.. records, records[0]]),
+                _ => new WorldHistorySegment(null, [], [records[0] with { Status = "waiting", SettledTick = null }, .. records.Skip(1)]),
+            };
+            var bytes = JsonSerializer.SerializeToUtf8Bytes(segment);
+            var digest = Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(bytes));
+            File.WriteAllBytes(Path.Combine(file.Path + ".history", digest + ".json"), bytes);
+            checkpoint = checkpoint with { HistoryArchiveHead = digest };
         }
-        finally { directory.Delete(recursive: true); }
+        var damaged = WorldRuntimeCodec.Encode(checkpoint);
+        Assert.Throws<InvalidDataException>(() => file.VerifyRequiredHistory(checkpoint));
+        Assert.Equal(healthy, File.ReadAllBytes(file.Path));
+        File.WriteAllBytes(file.Path, damaged);
+        Assert.Throws<InvalidDataException>(() => file.LoadOrCreate(checkpoint.WorldSeed));
+        Assert.Equal(damaged, File.ReadAllBytes(file.Path));
+        Assert.Equal(healthy, WorldRuntimeCodec.Encode(world.ExportState()));
     }
 
     private static BoatTripRequest[] ReadArchivedBoatRequests(WorldStateFile file)
