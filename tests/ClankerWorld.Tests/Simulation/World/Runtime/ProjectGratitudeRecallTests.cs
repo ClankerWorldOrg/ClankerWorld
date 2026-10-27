@@ -17,7 +17,7 @@ public sealed partial class GrownAgentHelperMemoryTests
     [InlineData(true, true)]
     public async Task OfferedProjectHelpSurvivesModelReloadAndPersonalRecall(bool nativeBorn, bool fullHouse = false)
     {
-        var initial = WorldRuntimeCodec.Decode(await (nativeBorn ? LaterAdult : ConversationAdult).Value);
+        var initial = WorldRuntimeCodec.Decode(await (nativeBorn ? LaterAdult : MemoryAdult).Value);
         var society = initial.Society.Society;
         var participants = nativeBorn
             ? society.Births.OrderBy(birth => birth.CommittedTick).Select(birth => birth.ChildId)

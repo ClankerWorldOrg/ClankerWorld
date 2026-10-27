@@ -20,7 +20,7 @@ public sealed partial class GrownAgentHelperMemoryTests
     [InlineData(true, false, true)]
     public async Task NativeAdultsFileLandRequestsThroughPublicAndPersonalPaths(bool later, bool shortControl, bool formedHousehold)
     {
-        var state = WorldRuntimeCodec.Decode(await (later ? LaterAdult : ConversationAdult).Value);
+        var state = WorldRuntimeCodec.Decode(await (later ? LaterAdult : MemoryAdult).Value);
         var native = state.Society.Society.Births.OrderBy(birth => birth.CommittedTick).Last().ChildId;
         var household = state.Society.Society.GetAgent(native).HouseholdId;
         if (formedHousehold)

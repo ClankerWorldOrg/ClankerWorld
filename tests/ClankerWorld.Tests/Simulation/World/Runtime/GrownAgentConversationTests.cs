@@ -13,7 +13,6 @@ namespace ClankerWorld.Tests;
 public sealed partial class GrownAgentHelperMemoryTests
 {
     private static readonly string[] ConversationModels = ["initiator-model", "invitee-model"];
-    private static readonly Lazy<Task<byte[]>> ConversationAdult = new(CreateCancellationAdultAsync);
     private static readonly Lazy<Task<byte[]>> ConversationLaterAdults = new(async () =>
         await GrowLaterFamilyAsync(WorldRuntimeCodec.Decode(await LaterAdult!.Value), 4, 5));
 
@@ -25,7 +24,7 @@ public sealed partial class GrownAgentHelperMemoryTests
     [InlineData("invitee", true)]
     public async Task NativeBornAdultCanTakeEitherConversationRoleThroughOwnConfiguredModel(string role, bool laterGeneration)
     {
-        var state = WorldRuntimeCodec.Decode(await (laterGeneration ? ConversationLaterAdults : ConversationAdult).Value);
+        var state = WorldRuntimeCodec.Decode(await (laterGeneration ? ConversationLaterAdults : MemoryAdult).Value);
         var birth = laterGeneration
             ? state.Society.Society.Births.OrderBy(item => item.CommittedTick).Last()
             : Assert.Single(state.Society.Society.Births);

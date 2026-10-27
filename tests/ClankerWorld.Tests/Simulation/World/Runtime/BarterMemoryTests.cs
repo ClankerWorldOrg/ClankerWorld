@@ -177,10 +177,9 @@ public sealed partial class GrownAgentHelperMemoryTests
     private static async Task AdvanceNativeBarter(WorldRuntime world, NativeConversationCheckpointHost host)
     {
         await ModelWorkHarness.WaitForExistingAsync(world);
-        await host.Advance();
+        var (bytes, state) = await host.Advance();
         await ModelWorkHarness.WaitForExistingAsync(world);
-        var bytes = host.Saved();
-        using var reload = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));
+        using var reload = WorldRuntime.Restore(state);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(reload.ExportState()));
     }
 

@@ -13,7 +13,7 @@ public sealed partial class GrownAgentHelperMemoryTests
     public async Task NativeLandHouseholdFormationContinuesAfterAnAdmittedQuietRefusal(bool later, bool heldIdentityReply = false,
         bool cancelFoundReply = false)
     {
-        var initial = WorldRuntimeCodec.Decode(await (later ? LaterAdult : ConversationAdult).Value);
+        var initial = WorldRuntimeCodec.Decode(await (later ? LaterAdult : MemoryAdult).Value);
         var native = initial.Society.Society.Births.OrderBy(birth => birth.CommittedTick).Last().ChildId;
         Assert.InRange(native.Length, 1, DerivedId.MaximumLength);
         Assert.Equal(later ? 3 : 1, initial.Society.Society.Births.Count);
