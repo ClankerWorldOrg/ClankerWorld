@@ -186,67 +186,55 @@ public sealed partial class LocalServerTests
     [Fact]
     public async Task GameStartsPairsWithAndStopsItsOwnServer()
     {
-        var data = Path.Combine(Path.GetTempPath(), $"clankerworld-local-server-{Guid.NewGuid():N}");
-        var (port, approvalPort) = FreePorts();
+        await using var fixture = new NativeServerFixture("clankerworld-local-server-");
         var (version, revision) = BuildOf();
-        var layout = NativeLayout(data);
-        using var http = new HttpClient();
-        var game = new LocalServer(layout, http, port, approvalPort);
-        try
+        Assert.Equal(LocalServerStartOutcome.Started, (await fixture.Server.StartAsync(version, revision, CancellationToken.None)).Outcome);
+        Assert.True(File.Exists(Path.Combine(fixture.Layout.DataDirectory, "saves", "world.json")));
+        Assert.DoesNotContain(File.ReadAllText(fixture.Layout.SecretPath), await ReadSharedAsync(fixture.Layout.LogPath));
+
+        // A relaunch of the same build reuses the running host; a different build refuses it.
+        var relaunch = new LocalServer(fixture.Layout, fixture.Http, fixture.Port, fixture.Approval);
+        Assert.Equal(LocalServerStartOutcome.Reused, (await relaunch.StartAsync(version, revision, CancellationToken.None)).Outcome);
+        var otherBuild = new LocalServer(fixture.Layout, fixture.Http, fixture.Port, fixture.Approval);
+        Assert.Equal(LocalServerStartOutcome.PortInUse, (await otherBuild.StartAsync("9.9.9", revision, CancellationToken.None)).Outcome);
+
+        // Use up the public route's shared budget and every pending slot.
+        for (var attempt = 0; attempt < 8; attempt++)
         {
-            Assert.Equal(LocalServerStartOutcome.Started, (await game.StartAsync(version, revision, CancellationToken.None)).Outcome);
-            Assert.True(File.Exists(Path.Combine(data, "saves", "world.json")));
-            Assert.DoesNotContain(File.ReadAllText(layout.SecretPath), await ReadSharedAsync(layout.LogPath));
-
-            // A relaunch of the same build reuses the running host; a different build refuses it.
-            var relaunch = new LocalServer(layout, http, port, approvalPort);
-            Assert.Equal(LocalServerStartOutcome.Reused, (await relaunch.StartAsync(version, revision, CancellationToken.None)).Outcome);
-            var otherBuild = new LocalServer(layout, http, port, approvalPort);
-            Assert.Equal(LocalServerStartOutcome.PortInUse, (await otherBuild.StartAsync("9.9.9", revision, CancellationToken.None)).Outcome);
-
-            // Use up the public route's shared budget and every pending slot.
-            for (var attempt = 0; attempt < 8; attempt++)
-            {
-                using var other = ECDsa.Create(ECCurve.NamedCurves.nistP256);
-                using var filled = await http.PostAsJsonAsync(new Uri(game.Origin, "api/v1/pairings"),
-                    new { publicKeySpkiBase64 = Convert.ToBase64String(other.ExportSubjectPublicKeyInfo()) });
-                Assert.Equal(HttpStatusCode.OK, filled.StatusCode);
-            }
-            using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
-            using var publicStart = await http.PostAsJsonAsync(new Uri(game.Origin, "api/v1/pairings"),
-                new { publicKeySpkiBase64 = Convert.ToBase64String(key.ExportSubjectPublicKeyInfo()) });
-            Assert.Equal(HttpStatusCode.TooManyRequests, publicStart.StatusCode);
-            using var withoutSecret = await http.PostAsJsonAsync(new Uri($"http://127.0.0.1:{approvalPort}/api/v1/approval/pairings"),
-                new { publicKeySpkiBase64 = Convert.ToBase64String(key.ExportSubjectPublicKeyInfo()) });
-            Assert.Equal(HttpStatusCode.NotFound, withoutSecret.StatusCode);
-
-            // The game still pairs with its own local server, through the local route and its secret.
-            using var signer = new Signer(key);
-            await Assert.ThrowsAsync<InvalidOperationException>(() => otherBuild.StartPairingAsync(signer, CancellationToken.None));
-            var pairing = await game.StartPairingAsync(signer, CancellationToken.None);
-            Assert.False(await otherBuild.ApprovePairingAsync(pairing.PairingId, pairing.PairingCode, CancellationToken.None));
-            Assert.True(await game.ApprovePairingAsync(pairing.PairingId, pairing.PairingCode, CancellationToken.None));
-            // Status and activation stay on the origin the registration is pinned to.
-            var pairingClient = new OwnerPairingClient(http);
-            Assert.Equal(OwnerPairingState.Approved,
-                (await pairingClient.GetPairingStatusAsync(game.Origin, pairing.PairingId, CancellationToken.None)).State);
-            var device = await pairingClient.ActivatePairingAsync(game.Origin, pairing, signer, CancellationToken.None);
-            Assert.Equal(OwnerDeviceState.Active, device.State);
-            Assert.True(game.Serves(new Uri($"http://127.0.0.1:{port}/")));
-            Assert.False(game.Serves(new Uri($"http://127.0.0.1:{approvalPort}/")));
-            Assert.False(game.Serves(new Uri("https://world.example.test/")));
-
-            await game.StopAsync(CancellationToken.None);
-            Assert.False(game.StartedServer);
-            Assert.False(File.Exists(layout.SecretPath));
-            Assert.Contains("server_shutdown outcome=saved", await ReadSharedAsync(layout.LogPath), StringComparison.Ordinal);
-            await Assert.ThrowsAsync<HttpRequestException>(() => http.GetAsync(new Uri(game.Origin, "api/v1/handshake")));
+            using var other = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+            using var filled = await fixture.Http.PostAsJsonAsync(new Uri(fixture.Server.Origin, "api/v1/pairings"),
+                new { publicKeySpkiBase64 = Convert.ToBase64String(other.ExportSubjectPublicKeyInfo()) });
+            Assert.Equal(HttpStatusCode.OK, filled.StatusCode);
         }
-        finally
-        {
-            await game.StopAsync(CancellationToken.None);
-            if (Directory.Exists(data)) Directory.Delete(data, recursive: true);
-        }
+        using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+        using var publicStart = await fixture.Http.PostAsJsonAsync(new Uri(fixture.Server.Origin, "api/v1/pairings"),
+            new { publicKeySpkiBase64 = Convert.ToBase64String(key.ExportSubjectPublicKeyInfo()) });
+        Assert.Equal(HttpStatusCode.TooManyRequests, publicStart.StatusCode);
+        using var withoutSecret = await fixture.Http.PostAsJsonAsync(new Uri($"http://127.0.0.1:{fixture.Approval}/api/v1/approval/pairings"),
+            new { publicKeySpkiBase64 = Convert.ToBase64String(key.ExportSubjectPublicKeyInfo()) });
+        Assert.Equal(HttpStatusCode.NotFound, withoutSecret.StatusCode);
+
+        // The game still pairs with its own local server, through the local route and its secret.
+        using var signer = new Signer(key);
+        await Assert.ThrowsAsync<InvalidOperationException>(() => otherBuild.StartPairingAsync(signer, CancellationToken.None));
+        var pairing = await fixture.Server.StartPairingAsync(signer, CancellationToken.None);
+        Assert.False(await otherBuild.ApprovePairingAsync(pairing.PairingId, pairing.PairingCode, CancellationToken.None));
+        Assert.True(await fixture.Server.ApprovePairingAsync(pairing.PairingId, pairing.PairingCode, CancellationToken.None));
+        // Status and activation stay on the origin the registration is pinned to.
+        var pairingClient = new OwnerPairingClient(fixture.Http);
+        Assert.Equal(OwnerPairingState.Approved,
+            (await pairingClient.GetPairingStatusAsync(fixture.Server.Origin, pairing.PairingId, CancellationToken.None)).State);
+        var device = await pairingClient.ActivatePairingAsync(fixture.Server.Origin, pairing, signer, CancellationToken.None);
+        Assert.Equal(OwnerDeviceState.Active, device.State);
+        Assert.True(fixture.Server.Serves(new Uri($"http://127.0.0.1:{fixture.Port}/")));
+        Assert.False(fixture.Server.Serves(new Uri($"http://127.0.0.1:{fixture.Approval}/")));
+        Assert.False(fixture.Server.Serves(new Uri("https://world.example.test/")));
+
+        await fixture.Server.StopAsync(CancellationToken.None);
+        Assert.False(fixture.Server.StartedServer);
+        Assert.False(File.Exists(fixture.Layout.SecretPath));
+        Assert.Contains("server_shutdown outcome=saved", await ReadSharedAsync(fixture.Layout.LogPath), StringComparison.Ordinal);
+        await Assert.ThrowsAsync<HttpRequestException>(() => fixture.Http.GetAsync(new Uri(fixture.Server.Origin, "api/v1/handshake")));
     }
 
     [Fact]
@@ -327,32 +315,20 @@ public sealed partial class LocalServerTests
     [InlineData("/api/v1/approval/hosting")]
     public async Task RelaunchRetriesOneTimedOutProbeAndReusesItsActualServer(string route)
     {
-        var data = Path.Combine(Path.GetTempPath(), $"clankerworld-local-server-timeout-{Guid.NewGuid():N}");
+        await using var fixture = new NativeServerFixture("clankerworld-local-server-timeout-");
         var (version, revision) = BuildOf();
-        var layout = NativeLayout(data);
-        using var http = new HttpClient();
-        var (port, approval) = FreePorts();
-        var game = new LocalServer(layout, http, port, approval);
-        try
-        {
-            Assert.Equal(LocalServerStartOutcome.Started, (await game.StartAsync(version, revision, CancellationToken.None)).Outcome);
-            var secretDigest = SHA256.HashData(File.ReadAllBytes(layout.SecretPath));
-            using var handler = new TimeoutOnceHandler(route);
-            using var delayedHttp = new HttpClient(handler);
-            var relaunch = new LocalServer(layout, delayedHttp, port, approval);
-
-            Assert.Equal(LocalServerStartOutcome.Reused, (await relaunch.StartAsync(version, revision, CancellationToken.None)).Outcome);
-            Assert.True(handler.TargetRequests >= 2);
-            Assert.False(relaunch.StartedServer);
-            Assert.True(game.StartedServer);
-            Assert.Equal(secretDigest, SHA256.HashData(File.ReadAllBytes(layout.SecretPath)));
-            Assert.True((await http.GetAsync(new Uri(game.Origin, "api/v1/handshake"))).IsSuccessStatusCode);
-        }
-        finally
-        {
-            await game.StopAsync(CancellationToken.None);
-            if (Directory.Exists(data)) Directory.Delete(data, recursive: true);
-        }
+        Assert.Equal(LocalServerStartOutcome.Started, (await fixture.Server.StartAsync(version, revision, CancellationToken.None)).Outcome);
+        var secretDigest = SHA256.HashData(File.ReadAllBytes(fixture.Layout.SecretPath));
+        using var handler = new TimeoutOnceHandler(route);
+        using var delayedHttp = new HttpClient(handler);
+        var clock = new RetryClock();
+        var relaunch = new LocalServer(fixture.Layout, delayedHttp, fixture.Port, fixture.Approval, timeProvider: clock);
+        Assert.Equal(LocalServerStartOutcome.Reused, (await clock.RetryAsync(relaunch, handler, route)).Outcome);
+        Assert.True(handler.TargetRequests >= 2);
+        Assert.False(relaunch.StartedServer);
+        Assert.True(fixture.Server.StartedServer);
+        Assert.Equal(secretDigest, SHA256.HashData(File.ReadAllBytes(fixture.Layout.SecretPath)));
+        Assert.True((await fixture.Http.GetAsync(new Uri(fixture.Server.Origin, "api/v1/handshake"))).IsSuccessStatusCode);
     }
 
     [Theory]
@@ -364,70 +340,58 @@ public sealed partial class LocalServerTests
     [InlineData(false, true, "/api/v1/approval/hosting")]
     public async Task AnUnresponsiveRelaunchPreservesItsServerAndSecretOnTimeoutOrCancellation(bool cancelCaller, bool deferTimeout, string route)
     {
-        var data = Path.Combine(Path.GetTempPath(), $"clankerworld-local-server-unresponsive-{Guid.NewGuid():N}");
+        await using var fixture = new NativeServerFixture("clankerworld-local-server-unresponsive-");
         var (version, revision) = BuildOf();
-        var layout = NativeLayout(data);
-        using var http = new HttpClient();
-        var (port, approval) = FreePorts();
-        var game = new LocalServer(layout, http, port, approval);
+        var initial = await fixture.Server.StartAsync(version, revision, CancellationToken.None);
+        Assert.True(initial.Outcome == LocalServerStartOutcome.Started,
+            initial.Outcome == LocalServerStartOutcome.Started ? null :
+            $"Initial launch: {initial.Outcome} ({initial.Detail}); public={fixture.Port}; approval={fixture.Approval}\n" +
+            (File.Exists(fixture.Layout.LogPath)
+                ? ProblemReport.Redact(await ReadSharedAsync(fixture.Layout.LogPath), fixture.Server.SecretsToHide())
+                : "No child log was created."));
+        var secretDigest = SHA256.HashData(File.ReadAllBytes(fixture.Layout.SecretPath));
+        using var handler = new TimeoutOnceHandler(route, holdEveryRequest: true, deferTimeout: deferTimeout);
+        using var delayedHttp = new HttpClient(handler);
+        var clock = new ManualTimeProvider();
+        var relaunch = new LocalServer(fixture.Layout, delayedHttp, fixture.Port, fixture.Approval, TimeSpan.FromMilliseconds(100), timeProvider: clock);
+        using var cancellation = new CancellationTokenSource();
+        var starting = relaunch.StartAsync(version, revision, cancellation.Token);
         try
         {
-            var initial = await game.StartAsync(version, revision, CancellationToken.None);
-            Assert.True(initial.Outcome == LocalServerStartOutcome.Started,
-                initial.Outcome == LocalServerStartOutcome.Started ? null :
-                $"Initial launch: {initial.Outcome} ({initial.Detail}); public={port}; approval={approval}\n" +
-                (File.Exists(layout.LogPath)
-                    ? ProblemReport.Redact(await ReadSharedAsync(layout.LogPath), game.SecretsToHide())
-                    : "No child log was created."));
-            var secretDigest = SHA256.HashData(File.ReadAllBytes(layout.SecretPath));
-            using var handler = new TimeoutOnceHandler(route, holdEveryRequest: true, deferTimeout: deferTimeout);
-            using var delayedHttp = new HttpClient(handler);
-            var clock = new ManualTimeProvider();
-            var relaunch = new LocalServer(layout, delayedHttp, port, approval, TimeSpan.FromMilliseconds(100), timeProvider: clock);
-            using var cancellation = new CancellationTokenSource();
-            var starting = relaunch.StartAsync(version, revision, cancellation.Token);
-            try
+            if (cancelCaller)
             {
-                if (cancelCaller)
-                {
-                    await ModelWorkHarness.WaitForSignalAsync(handler.Entered.Task);
-                    cancellation.Cancel();
-                    await Assert.ThrowsAnyAsync<OperationCanceledException>(() => ModelWorkHarness.WaitForSignalAsync(starting));
-                }
-                else
-                {
-                    await ModelWorkHarness.WaitForSignalAsync(handler.Entered.Task);
-                    clock.Advance(TimeSpan.FromSeconds(route.EndsWith("/hosting", StringComparison.Ordinal) ? 5 : 2));
-                    if (deferTimeout)
-                    {
-                        await ModelWorkHarness.WaitForSignalAsync(handler.TimedOut.Task);
-                        Assert.False(cancellation.IsCancellationRequested);
-                        // Hold the actual request-timeout continuation beyond the
-                        // old caller timer, without changing the host or response.
-                        clock.Advance(TimeSpan.FromSeconds(6));
-                    }
-                    handler.ResumeTimeout.TrySetResult();
-                    Assert.Equal(LocalServerStartOutcome.TimedOut, (await ModelWorkHarness.WaitForSignalAsync(starting)).Outcome);
-                }
-            }
-            finally
-            {
+                await ModelWorkHarness.WaitForSignalAsync(handler.Entered.Task);
                 cancellation.Cancel();
-                handler.ResumeTimeout.TrySetResult();
-                try { await ModelWorkHarness.WaitForSignalAsync(starting); }
-                catch (OperationCanceledException) { }
+                await Assert.ThrowsAnyAsync<OperationCanceledException>(() => ModelWorkHarness.WaitForSignalAsync(starting));
             }
-            Assert.True(handler.TargetRequests > 0);
-            Assert.False(relaunch.StartedServer);
-            Assert.True(game.StartedServer);
-            Assert.Equal(secretDigest, SHA256.HashData(File.ReadAllBytes(layout.SecretPath)));
-            Assert.True((await http.GetAsync(new Uri(game.Origin, "api/v1/handshake"))).IsSuccessStatusCode);
+            else
+            {
+                await ModelWorkHarness.WaitForSignalAsync(handler.Entered.Task);
+                clock.Advance(TimeSpan.FromSeconds(route.EndsWith("/hosting", StringComparison.Ordinal) ? 5 : 2));
+                if (deferTimeout)
+                {
+                    await ModelWorkHarness.WaitForSignalAsync(handler.TimedOut.Task);
+                    Assert.False(cancellation.IsCancellationRequested);
+                    // Hold the actual request-timeout continuation beyond the
+                    // old caller timer, without changing the host or response.
+                    clock.Advance(TimeSpan.FromSeconds(6));
+                }
+                handler.ResumeTimeout.TrySetResult();
+                Assert.Equal(LocalServerStartOutcome.TimedOut, (await ModelWorkHarness.WaitForSignalAsync(starting)).Outcome);
+            }
         }
         finally
         {
-            await game.StopAsync(CancellationToken.None);
-            if (Directory.Exists(data)) Directory.Delete(data, recursive: true);
+            cancellation.Cancel();
+            handler.ResumeTimeout.TrySetResult();
+            try { await ModelWorkHarness.WaitForSignalAsync(starting); }
+            catch (OperationCanceledException) { }
         }
+        Assert.True(handler.TargetRequests > 0);
+        Assert.False(relaunch.StartedServer);
+        Assert.True(fixture.Server.StartedServer);
+        Assert.Equal(secretDigest, SHA256.HashData(File.ReadAllBytes(fixture.Layout.SecretPath)));
+        Assert.True((await fixture.Http.GetAsync(new Uri(fixture.Server.Origin, "api/v1/handshake"))).IsSuccessStatusCode);
     }
 
     private sealed class TimeoutOnceHandler(string route, bool holdEveryRequest = false, bool deferTimeout = false) : HttpMessageHandler
@@ -599,6 +563,57 @@ public sealed partial class LocalServerTests
                 ? Task.FromResult(new HttpResponseMessage(status)) : inner.SendAsync(request, cancellationToken);
         }
         protected override void Dispose(bool disposing) { if (disposing) inner.Dispose(); base.Dispose(disposing); }
+    }
+
+    private sealed class NativeServerFixture : IAsyncDisposable
+    {
+        private readonly ClientTestDirectory directory;
+        public HttpClient Http { get; } = new();
+        public int Port { get; }
+        public int Approval { get; }
+        public LocalServerLayout Layout { get; }
+        public LocalServer Server { get; }
+        public NativeServerFixture(string prefix, string? hostKind = null)
+        {
+            directory = new(prefix);
+            (Port, Approval) = FreePorts();
+            Layout = NativeLayout(directory.FullName) with { HostKind = hostKind };
+            Server = new(Layout, Http, Port, Approval);
+        }
+        public async ValueTask DisposeAsync()
+        {
+            try
+            {
+                await Server.StopAsync(CancellationToken.None);
+                directory.Dispose();
+            }
+            finally { Http.Dispose(); }
+        }
+    }
+
+    private sealed class RetryClock : TimeProvider
+    {
+        private readonly ManualTimeProvider clock = new();
+        private readonly InlineCompletionSource retryReady = new();
+        public override DateTimeOffset GetUtcNow() => clock.GetUtcNow();
+        public override ITimer CreateTimer(TimerCallback callback, object? state, TimeSpan dueTime, TimeSpan period)
+        {
+            var timer = clock.CreateTimer(callback, state, dueTime, period);
+            if (dueTime == TimeSpan.FromMilliseconds(250)) retryReady.TrySetResult();
+            return timer;
+        }
+        public async Task<LocalServerStart> RetryAsync(LocalServer server, TimeoutOnceHandler handler, string route)
+        {
+            var (version, revision) = BuildOf();
+            var starting = server.StartAsync(version, revision, CancellationToken.None);
+            await ModelWorkHarness.WaitForSignalAsync(handler.Entered.Task);
+            // Stop at the held request's deadline so this advance cannot also
+            // fire the retry delay and expire its real HTTP request.
+            clock.Advance(TimeSpan.FromSeconds(route.EndsWith("/hosting", StringComparison.Ordinal) ? 5 : 2));
+            await ModelWorkHarness.WaitForSignalAsync(retryReady.Task);
+            clock.Advance(TimeSpan.FromMilliseconds(250));
+            return await ModelWorkHarness.WaitForSignalAsync(starting);
+        }
     }
 
     private static LocalServerLayout NativeLayout(string data)
