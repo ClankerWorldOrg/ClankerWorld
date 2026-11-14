@@ -11,7 +11,7 @@ This page holds the rules for the game's pixel art. Computment approved this
 direction in the October 1 art review: it keeps the look the game already
 had and tightens it into rules you can check on a rendered picture. The
 decisions themselves are in
-[Interface and art](../game-design/interface-and-art.md#pixel-art-and-generated-images).
+[Interface and art](../game-design/interface-and-art/pixel-art-and-generated-images.md#pixel-art-and-generated-images).
 
 All art is drawn in C# code in the Godot client
 (`src/ClankerWorld.GodotClient/UI/Graphics/`, `UI/Map/`, `UI/Menu/MenuValleyArt.cs`),

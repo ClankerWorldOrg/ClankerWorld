@@ -242,7 +242,7 @@ is the only player for now, so this waits until then.
   season, and four real hours per year. Each 10-day month is one season, so
   dates use season names by default, such as **Autumn 2, Year 1**, with numeric
   dates as a setting
-  ([Interface and art](interface-and-art.md#main-menu-world-view-and-controls)).
+  ([Interface and art](interface-and-art/menus-and-world-view.md#main-menu-world-view-and-controls)).
   A six-hour maximum life from birth would then
   span at most 60 world days, 1.5 years, or six seasons. These numbers may be
   changed after playtesting; they are not final performance or pacing promises.
@@ -310,7 +310,7 @@ still needs playtesting.
   zooms out until the view spans 70% of a Small or Medium map, and the larger
   sizes share one floor of 8 pixels per tile. Both numbers are provisional, for
   playtesting; see
-  [Interface and art](interface-and-art.md#main-menu-world-view-and-controls).
+  [Interface and art](interface-and-art/menus-and-world-view.md#main-menu-world-view-and-controls).
 - Use **64×64 logical tiles per chunk** as the starting arrangement target.
   Chunks help storage, loading, and rendering without forcing an entire chunk
   into one giant texture. Rendering only what the camera sees is distinct from
@@ -428,7 +428,7 @@ still needs playtesting.
   supports diagonal steps at 141% of cardinal entry cost and requires both
   orthogonal shoulder tiles to be passable; occupied shoulders also block a
   live diagonal move. Diagonal Town Roads are drawn on the map too; see
-  [Towns](towns.md#how-roads-and-bridges-appear).
+  [Towns](towns/land-and-roads.md#how-roads-and-bridges-appear).
 
 ### Weather over time
 
@@ -525,7 +525,7 @@ bridge over a separate nearby stream is never blocked. A river is bridgeable up
 to two tiles wide; wider water is not bridged, and bridges cost no materials.
 How fast agents wade a two-tile river is provisional balance. The
 initial traffic threshold and permanent Road/bridge rule are recorded in
-[Towns](towns.md#how-roads-and-bridges-appear). Town site planning and Road
+[Towns](towns/land-and-roads.md#how-roads-and-bridges-appear). Town site planning and Road
 generation must be designed together.
 
 ### First boat and Port travel
@@ -590,7 +590,7 @@ coverage and bounded retry choices above do not settle those other numbers.
 The same goes for how much ocean shore becomes beach, how large and dense forest
 groves are, and how far and how high the hill band around mountains reaches.
 The generator uses provisional values for these
-([How it works](../development/how-it-works.md#terrain-layers-sand-groves-and-hills));
+([How it works](../development/how-it-works/terrain-and-mountains.md#terrain-layers-sand-groves-and-hills));
 they become decisions only after computment reviews generated maps.
 
 **Agreed on October 8
@@ -630,12 +630,12 @@ call for each weather change.
   An agent may shelter from storms in their own household's House, or use
   natural cover such as a forest or tree when away from home. An invited guest
   may also shelter from storms in another household's House, without access to
-  its stock or cooking (see [Towns](towns.md#buildings-land-towns-and-animals)).
+  its stock or cooking (see [Towns](towns/buildings-and-animals.md#buildings-land-towns-and-animals)).
   **Agreed on October 8
   ([#1237](https://github.com/compoodment/ClankerWorld/issues/1237)):** natural
   cover gives only partial protection from a storm, less than a House, so
   Houses keep their value. Residents without a House may shelter at their
-  Town's Town Hall ([Towns](towns.md#buildings-land-towns-and-animals)).
+  Town's Town Hall ([Towns](towns/buildings-and-animals.md#buildings-land-towns-and-animals)).
   Weather may sometimes cause illness; food and care support recovery. Illness
   slows work and travel, not personality or normal conversation; staying home
   speeds recovery but confinement is not required. Exact penalties, care and
@@ -661,7 +661,7 @@ that every other action disappears. These are initial playtest thresholds,
 not proven balance targets. The point at which routine food errands start,
 and how much warmth is needed for a particular outing, remain to be tuned.
 
-The approved [food and material pipelines](towns.md#item-and-resource-pipelines)
+The approved [food and material pipelines](towns/item-and-resource-pipelines.md#item-and-resource-pipelines)
 give farming, cooking, fresh water and care supplies concrete sources and uses.
 Their yields, spoilage and recovery rates remain playtest balance.
 

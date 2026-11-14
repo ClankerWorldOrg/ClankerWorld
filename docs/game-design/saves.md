@@ -27,7 +27,7 @@ everything that is available in the current build. See [what works today](../wha
   off/3/5/10. These are initial choices subject to performance playtesting;
   they live in the current world's **World Settings**, as agreed on October 8
   ([#1276](https://github.com/compoodment/ClankerWorld/issues/1276);
-  [Interface and art](interface-and-art.md#main-menu-world-view-and-controls)).
+  [Interface and art](interface-and-art/menus-and-world-view.md#main-menu-world-view-and-controls)).
   **Agreed on October 8
   ([#1275](https://github.com/compoodment/ClankerWorld/issues/1275)):**
   autosave runs on its schedule whatever model requests are in flight; see
@@ -87,7 +87,7 @@ everything that is available in the current build. See [what works today](../wha
   For example, loading **Before the flood** after saving **Big harvest** keeps
   **Big harvest** in the first branch; **Hungry winter**, saved after playing
   on, belongs to the new one. Load Save and Save World draw a world's
-  branches as a timeline; [Interface and art](interface-and-art.md) records
+  branches as a timeline; [Interface and art](interface-and-art/panels-and-player-guidance.md) records
   its look. **Agreed on October 8
   ([#1251](https://github.com/compoodment/ClankerWorld/issues/1251)):** a branch
   is labelled after the save it started from, such as **From Before the

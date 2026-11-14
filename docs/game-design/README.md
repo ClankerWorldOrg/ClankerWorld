@@ -52,11 +52,11 @@ Each chapter owns its design choices. The content list supplies the detailed
 agreed catalogue; accepting an item or building does not also decide its recipe,
 price, storage capacity or development order. Reconcile conflicting summaries
 against the owner's actual decision. The October 1 approval of complete
-[item and resource pipelines](towns.md#item-and-resource-pipelines) settles
+[item and resource pipelines](towns/item-and-resource-pipelines.md#item-and-resource-pipelines) settles
 those sources, work sites, uses and physical stock/trade rules; balance remains
 provisional.
 
-The player's [role and intervention controls](interface-and-art.md#player-guidance-and-orders)
+The player's [role and intervention controls](interface-and-art/panels-and-player-guidance.md#player-guidance-and-orders)
 are agreed: the observer can send suggestions and orders through the game's
 normal rules. Their current availability is recorded in
 [what works today](../what-works.md).

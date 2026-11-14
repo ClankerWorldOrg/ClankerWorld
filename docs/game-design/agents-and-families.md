@@ -100,7 +100,7 @@ everything that is available in the current build. See [what works today](../wha
   naming request gives no cultural context. It carries only the naming rules
   (a full name, with a first name nobody else in the world has), the
   first-letter hint and, for a child, its parents' surnames.
-  [Player renaming](interface-and-art.md#player-guidance-and-orders) uses the
+  [Player renaming](interface-and-art/panels-and-player-guidance.md#player-guidance-and-orders) uses the
   same first-name check and preserves the person's identity and historical text.
   Building the new rule is tracked in
   [#912](https://github.com/compoodment/ClankerWorld/issues/912).
@@ -235,8 +235,8 @@ everything that is available in the current build. See [what works today](../wha
   will always wins. A Town law may change only the default division used when
   there is no valid will, and only from when it passes. Debts wait until credit
   exists; then they are paid from the estate first. A contested estate goes to
-  the Town's existing [hearing process](towns.md#land-hearings-and-rulings).
-  The law side is in [Town law scope](towns.md#town-law-scope-and-changes).
+  the Town's existing [hearing process](towns/laws-and-enforcement.md#land-hearings-and-rulings).
+  The law side is in [Town law scope](towns/laws-and-enforcement.md#town-law-scope-and-changes).
 - **A guardian for a child whose last caregiver dies, agreed on October 1
   ([#644](https://github.com/compoodment/ClankerWorld/issues/644)):** the game
   asks, in order, the child's living relatives (grandparents, adult siblings,
@@ -244,7 +244,7 @@ everything that is available in the current build. See [what works today](../wha
   household, then the adult residents of the child's Town. The first adult who
   accepts becomes the child's caregiver. Nobody becomes a guardian without
   accepting. The child moves only into a home with a free resident place under
-  the [House capacity rules](towns.md#house-resident-capacity-and-relocation).
+  the [House capacity rules](towns/households.md#house-resident-capacity-and-relocation).
   Until someone accepts, the child stays at home, nearby adults may still feed
   them, and the child's card and the Event Log show **Needs a guardian**, so
   the player can suggest or order an adult to take them in. How long each group
@@ -367,7 +367,7 @@ everything that is available in the current build. See [what works today](../wha
   Until acceptance, the child stays where they are, nearby adults
   may still feed them, and the player can see the unmet guardian need and
   suggest an adult in a message, or give an adult the
-  [order](interface-and-art.md#player-guidance-and-orders) **Become guardian
+  [order](interface-and-art/panels-and-player-guidance.md#player-guidance-and-orders) **Become guardian
   for …** with the child's name, which uses the same eligibility rules.
   The one-day interval for each group is provisional.
 
@@ -417,9 +417,9 @@ around the chosen site. Founders may start anywhere
 no placement boundary to measure, and the site changes only while no founder is
 placed ([#653](https://github.com/compoodment/ClankerWorld/issues/653)), so no
 founder position needs rechecking after a move.
-Town residency follows the [agreed membership rules](towns.md#town-membership).
+Town residency follows the [agreed membership rules](towns/town-membership.md#town-membership).
 Warehouse access across border changes and public salvage in an abandoned Town
-follow the [agreed Town rules](towns.md#borders-abandoned-towns-and-salvage).
+follow the [agreed Town rules](towns/town-membership.md#borders-abandoned-towns-and-salvage).
 How its ordinary access gate relates to a future crime system remains open.
 A configurable automatic-birth limit was
 considered, briefly accepted, then explicitly
@@ -432,7 +432,7 @@ retracted that thought; the ban still stands. A model-usage meter and optional
 AI-usage limit have since been accepted; neither is a population cap.
 
 Personal ownership is separate from storage or carrying location under the
-[agreed household goods rules](towns.md#household-goods-and-departure).
+[agreed household goods rules](towns/households.md#household-goods-and-departure).
 What a will may do, how it is asked for and carried out, and how it meets
 Town law and debts are agreed above. Still open: other guardianship cases.
 
@@ -621,7 +621,7 @@ options, not agreed game design.
 - Interpersonal combat belongs in the finished game for **self-defense, crime,
   personal feuds, and organized war**. Hunting and sport/duels were not chosen
   in that discussion. Animal slaughter and hunting are not in the first
-  complete game: the October 6 [animal pipeline](towns.md#animal-pipeline)
+  complete game: the October 6 [animal pipeline](towns/buildings-and-animals.md#animal-pipeline)
   excludes them.
 - **Fights, injuries and war, agreed on October 8
   ([#1267](https://github.com/compoodment/ClankerWorld/issues/1267)):** a fight
@@ -629,7 +629,7 @@ options, not agreed game design.
   Escape and surrender are always possible. An agent dies only from a severe
   injury left untreated or from repeated severe injuries. At first, injuries
   come only from fights; rare work accidents come later. Bandages and
-  [Clinic care](towns.md#clinic-supplies-and-illness-care) treat injuries. A
+  [Clinic care](towns/item-and-resource-pipelines.md#clinic-supplies-and-illness-care) treat injuries. A
   war starts only with a recorded declaration and ends with recorded peace
   terms. The game rules decide every outcome.
 - Combat can turn lethal, but agents should not be dying constantly. Personal
@@ -639,7 +639,7 @@ options, not agreed game design.
 ### Weapons and armor
 
 **Agreed through the October 1 approval of the
-[item pipelines](towns.md#item-and-resource-pipelines):** weapons and armor fit
+[item pipelines](towns/item-and-resource-pipelines.md#item-and-resource-pipelines):** weapons and armor fit
 the general item/equipment/crafting/invention system rather than being a
 disconnected special system. An axe could be both a work tool and a weapon;
 armor is wearable protective equipment. The approved pipelines give spears,

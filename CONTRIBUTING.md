@@ -406,7 +406,7 @@ them.
 - Follow the [code boundaries](docs/development/how-it-works.md#core-rules):
   the server decides world changes, and model output is untrusted input.
 - Keep credentials and private data out of code, saves, logs and reports, and
-  keep runtime changes diagnosable ([logging rules](docs/development/how-it-works.md#runtime-logging)).
+  keep runtime changes diagnosable ([logging rules](docs/development/how-it-works/runtime-logging.md#runtime-logging)).
 - Changes to saved state, events or replay need the
   [replay checks](docs/development/saves-and-replay.md). During alpha an older
   save may stop loading; do not write migration or old-save code to keep one working.

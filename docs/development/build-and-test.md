@@ -537,7 +537,7 @@ the bundled
 allows Play on this PC to launch the matching game with `--hosted-world` and
 the running host's data choice; older games are refused before launch.
 The host screen and sign-in behavior are described
-in [Playing](../playing.md#host-a-world-for-other-devices); its pending
+in [Playing](../playing/installation-and-connection.md#host-a-world-for-other-devices); its pending
 Windows/Tailscale checks are in the playtest list.
 
 The launcher ([#1566](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1566))
@@ -561,7 +561,7 @@ the launcher refuses the new run options on a build without that marker so an
 older game cannot silently ignore test isolation. Local builds need the world
 server their `package.json` names too. Normal installs retain the existing
 download and manifest checks; local builds are files the developer chooses.
-See [Launcher developer runs](how-it-works.md#launcher-developer-runs) for the
+See [Launcher developer runs](how-it-works/launcher.md#launcher-developer-runs) for the
 data paths and logging switches. These controls still need the listed Windows
 playtest.
 
@@ -647,7 +647,7 @@ events and digests, the unchanged probe source, build/probe logs, and the
 checkout commit and working-tree status. Keep this evidence with the PR. These bounded scenarios
 prove equivalence for their exercised paths; run additional seeds and longer
 tick counts when the moved area needs them. They are correctness checks, not
-tick-performance measurements. The [runtime system rules](how-it-works.md#runtime-systems)
+tick-performance measurements. The [runtime system rules](how-it-works/runtime-ownership.md#runtime-systems)
 describe the state and ordering contracts that every refactor step keeps.
 
 ## Focused documentation checks

@@ -10,7 +10,7 @@ updated: 2026-10-18
 Pairing gives one approved device permission to inspect and control the private
 world. The private Tailnet encrypts the connection and limits who can reach the
 server; being on that network alone does not grant world access. For the player
-steps, see [Playing](../playing.md#connect-your-device).
+steps, see [Playing](../playing/installation-and-connection.md#connect-your-device).
 
 The September 2026 identifier reset requires a new Windows registration and
 device key. The previous registration is not imported; pair the matching new
