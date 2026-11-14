@@ -829,7 +829,7 @@ the task and its selected destination.
 An order the game cannot understand leaves the current one running.
 Unsupported requests, such as "build a castle" or "gather cloth," close as not
 understood and appear in the Event Log. Recognized orders follow normal access
-and survival rules. [What works today](what-works.md#agents-and-their-models)
+and survival rules. [What works today](what-works/orders-and-goods.md)
 has the details.
 
 Click a building to outline it and open a small card beside it: who owns it,
@@ -1131,7 +1131,7 @@ building for free. Its waiting message explains that work retries when the
 approved site is usable and reachable and the required materials are available.
 If its site can no longer be used, the Town stops the
 project and the Towns page says why; its leftover materials stay Town
-property where they are. See [What works today](what-works.md#life-work-and-society)
+property where they are. See [What works today](what-works/town-projects.md)
 for this first version's limits and provisional amounts. Its
 [hands-on checklist](../playtest/alpha-1.md) remains pending.
 

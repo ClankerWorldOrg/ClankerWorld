@@ -393,7 +393,7 @@ them onward, for example to a household that needs a House. Former members who
 are still alive keep the property unless they agree: a ruling cannot pass it
 to the Town without their consent.
 
-See [what works today](../what-works.md#life-work-and-society) for departure,
+See [what works today](../what-works/town-projects.md) for departure,
 collection, care-group moves and relocation in the current build. The agreed
 response to losing a dependent's last active primary caregiver is described in
 [Agents and families](agents-and-families.md#dependent-care-after-loss-of-the-last-active-primary-caregiver).
@@ -530,7 +530,7 @@ rules are agreed. The existing
 [housing-admission work](https://github.com/compoodment/ClankerWorld/issues/464)
 and [storage-expansion work](https://github.com/compoodment/ClankerWorld/issues/463)
 remain their original implementation slices. See [what works
-today](../what-works.md#life-work-and-society) for resident limits, admission,
+today](../what-works/life-work-and-society.md#life-work-and-society) for resident limits, admission,
 birth placement, expansion and relocation in the current build.
 
 ### Town membership
@@ -1039,7 +1039,7 @@ can bridge two-tile crossings too. Only actual traversal counts, not route
 previews, failed attempts or waiting. Keep bounded crossing evidence across
 saves; the threshold can be tuned after playtesting. Generated-Road bridges
 need not wait for this traffic. [What works
-today](../what-works.md#maps-weather-and-appearance) says what normal play
+today](../what-works/maps-weather-and-appearance.md#maps-weather-and-appearance) says what normal play
 shows so far, and [How it
 works](../development/how-it-works/roads-and-projects.md#roads-and-bridges) says how the same
 connected banks are compared.
@@ -1900,7 +1900,7 @@ detailed actions. See [combat](agents-and-families.md#combat) and
 This stage makes, stores and trades bandages, but does not create injuries or
 apply bandages to a patient. Medicine uses the existing illness system and
 supports recovery gradually. The injury stage is agreed below. See
-[current availability](../what-works.md#life-work-and-society) for the build and
+[current availability](../what-works/life-work-and-society.md#life-work-and-society) for the build and
 pending Windows checks.
 
 **Injuries, agreed on October 8
