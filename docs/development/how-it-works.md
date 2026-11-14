@@ -4413,7 +4413,7 @@ member has agreed, `SocietyRules.JoinHouseholdCareGroup` records the membership 
 as a refusal for the cooldown. The request grants nothing while pending: stock,
 shelter and route rules still check household membership. A resident with notice
 leaves through `DepartHousehold` before joining, preserving the
-[departure rules](../game-design/towns.md#household-goods-and-departure) for goods,
+[departure rules](../game-design/towns/households.md#household-goods-and-departure) for goods,
 food allowance and care. Before that exit, live relocation eligibility and
 destination capacity are checked again. A cancelled notice also cancels a
 resident's pending request elsewhere; an adult who already left keeps seeking
@@ -4973,7 +4973,7 @@ do not reduce ingredient demand. After borrowing ends, reachable goods may
 reduce that demand under the normal pickup, source-reserve and capacity checks.
 
 House cooking and Restaurants use the named recipes in the
-[agreed food pipeline](../game-design/towns.md#food-and-replanting). Generic
+[agreed food pipeline](../game-design/towns/item-and-resource-pipelines.md#food-and-replanting). Generic
 food-to-food production is refused. Production reserves exact usable on-site
 inputs and room for its net storage growth; finishing consumes the reservations
 and stores two named servings, leaving water jugs intact. A runnable named meal
@@ -5198,7 +5198,7 @@ system.
 
 Roads and bridges are world-owned and permanent. Walking never adds a Road
 tile. The agreed rules are in
-[Towns](../game-design/towns.md#how-roads-and-bridges-appear); this section
+[Towns](../game-design/towns/land-and-roads.md#how-roads-and-bridges-appear); this section
 describes how the current code applies them.
 
 **One saved crossing for everything.** A bridge is a saved record with a stable
