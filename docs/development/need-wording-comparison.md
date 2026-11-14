@@ -16,7 +16,7 @@ built the words and this comparison. In the
 [model-backed run](#model-backed-results), words did no worse than numbers with
 GPT 6 Luna but clearly worse with GLM 5.3 Flash, so the owner chose to keep
 sending numbers.
-[How it works](how-it-works.md#model-inputs-usage-and-memories) describes the
+[How it works](how-it-works/model-requests.md#model-inputs-usage-and-memories) describes the
 two request formats.
 
 ## What is compared

@@ -53,7 +53,7 @@ Follow these now. A refactor step that lands turns a rule into a check.
    which goods, target, route and quantity. Its execution checks that same plan
    again instead of choosing again. Apply candidate caps only after filtering.
 3. **One answer per question.** Use the shared goods query for goods
-   ([Finding goods](how-it-works.md#finding-goods)), and one shared helper each
+   ([Finding goods](how-it-works/finding-goods.md#finding-goods)), and one shared helper each
    for life stage, need thresholds and reach. If the helper you need doesn't
    exist, add it in one place and use it everywhere you touch.
 4. **Refuse, don't throw.** A choice that is no longer possible gets a refusal

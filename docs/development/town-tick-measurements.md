@@ -15,7 +15,7 @@ reported as a new bug.
 
 Use `scripts/measure-town-ticks.sh` to compare native private-world ticks on
 this checkout or a historical one. It reads `LastTickMilliseconds`, the same
-committed-tick readout shown in [Developer tools](how-it-works.md#developer-tools-readouts).
+committed-tick readout shown in [Developer tools](how-it-works/developer-tools.md#developer-tools-readouts).
 It also records wall time around the host's nonblocking tick call. Neither
 includes rendering, save-file writes or a remote model's response time.
 

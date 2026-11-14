@@ -84,7 +84,7 @@ python skills/test-audit/scripts/unique_coverage.py <evidence>/per-test --timing
 Judge what the assertions actually detect, not what the name suggests. Prefer a remaining real HTTP or runtime scenario only when it exercises the same input, effect and failure mode.
 
 Audit by production ownership, so parallel reviewers read distinct lanes. Use
-the current [source layout](../../docs/development/how-it-works.md#source-layout)
+the current [source layout](../../docs/development/how-it-works/source-layout.md#source-layout)
 to find each system, its runtime adapters and server or client callers. Read
 whole test bodies and theory data, the owning implementation and its callers,
 overlapping suites, CI filters and the relevant Git history before choosing a

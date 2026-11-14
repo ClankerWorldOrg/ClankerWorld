@@ -590,7 +590,7 @@ coverage and bounded retry choices above do not settle those other numbers.
 The same goes for how much ocean shore becomes beach, how large and dense forest
 groves are, and how far and how high the hill band around mountains reaches.
 The generator uses provisional values for these
-([How it works](../development/how-it-works.md#terrain-layers-sand-groves-and-hills));
+([How it works](../development/how-it-works/terrain-and-mountains.md#terrain-layers-sand-groves-and-hills));
 they become decisions only after computment reviews generated maps.
 
 **Agreed on October 8
