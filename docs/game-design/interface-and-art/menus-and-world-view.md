@@ -40,7 +40,7 @@ This page covers menus, the world view, controls and settings.
   ([#1276](https://github.com/compoodment/ClankerWorld/issues/1276)):** the
   tile card shows **Fertility** when the game knows it and has no separate
   biome field. Its layout is the one chosen in the October 2 panel review
-  below.
+  in [Panels and player guidance](panels-and-player-guidance.md#agreed).
 - One continuous pixel-art world view supports mouse-wheel zoom and WASD
   panning. On an east/west-wrapped world, the camera should pan continuously
   across the seam in either direction. There is **no separate simplified
@@ -170,7 +170,7 @@ This page covers menus, the world view, controls and settings.
   except the Event Log, which sits at the right edge of the screen, and the
   mouse wheel over a panel never zooms the map behind it.
 - **Agreed after the October 1 playtest** (replacing the UI Scale choices
-  above): **there is no UI Scale setting.** The interface grows with the
+  in [Interface and art history](../../archive/interface-and-art-history.md#september-30-ui-scale)): **there is no UI Scale setting.** The interface grows with the
   screen in whole steps, so pixel letters always stay crisp: 100% on small
   screens, 200% at 1080p and 1440p and 300% at 4K, one step lower whenever
   the menus would have less than 960 × 540 interface pixels. computment
@@ -256,7 +256,7 @@ rest of this paragraph is agreed too, including the refusals it lists.
 
 In the **Add Agent** placement view, show exclusive household use areas and
 Town borders so computment can see the new agent's initial affiliation.
-Within the agreed placement order above, placement on a tile assigned
+Within the agreed placement order in [Panels and player guidance](panels-and-player-guidance.md#agreed), placement on a tile assigned
 exclusively to one household **forces the new agent into that household**
 (and its enclosing Town, if any); this player setup action does not seek
 household consent. Placement elsewhere within a

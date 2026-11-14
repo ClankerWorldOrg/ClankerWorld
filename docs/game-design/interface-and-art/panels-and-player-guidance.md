@@ -279,7 +279,7 @@ For menus, controls and Developer tools, see [Main Menu, world view, and control
   the existing Add Agent and Suggest/Order controls. Needs, skills, goods,
   memories, relationships and world objects change through simulation actions.
   Direct manipulation of those fields belongs in developer tools, whose
-  first set is agreed above. This preserves the separately agreed
+  first set is agreed in [Main Menu, world view, and controls](menus-and-world-view.md#agreed). This preserves the separately agreed
   founder setup, world settings and Mod Library controls.
 - **Player renaming uses the same first-name check as model naming**, against
   every other named living or deceased agent in the world. A taken first name is
