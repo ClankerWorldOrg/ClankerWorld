@@ -519,7 +519,7 @@ It does not hold up later suggestions or orders. A recognized task that cannot
 be carried out yet keeps waiting, including across saves. Blocked tasks retry
 on the agent's usual decision schedule, without paid polling on every tick.
 
-**These are intended rules.** [What works today](../what-works.md#agents-and-their-models)
+**These are intended rules.** [What works today](../what-works/orders-and-goods.md)
 describes the supported food orders and the remaining catalogue.
 
 ### Leaning toward

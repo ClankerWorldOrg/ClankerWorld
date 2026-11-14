@@ -4950,7 +4950,7 @@ chooses the recipe bound to the household's actual Blacksmith, including when
 checking work already running or materials the adult keeps for that cart.
 Storage still follows `BuildingStorageRules`; production capacity remains one.
 The current sizes and provisional costs are listed in
-[What works today](../what-works.md#household-building-sizes).
+[What works today](../what-works/households-and-buildings.md#household-building-sizes).
 
 Workstation recipes use only stock already at the building. A household
 building without its own dedicated hauling (every kind except the House,
