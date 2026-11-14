@@ -57,7 +57,7 @@ member has agreed, `SocietyRules.JoinHouseholdCareGroup` records the membership 
 as a refusal for the cooldown. The request grants nothing while pending: stock,
 shelter and route rules still check household membership. A resident with notice
 leaves through `DepartHousehold` before joining, preserving the
-[departure rules](../../game-design/towns.md#household-goods-and-departure) for goods,
+[departure rules](../../game-design/towns/households.md#household-goods-and-departure) for goods,
 food allowance and care. Before that exit, live relocation eligibility and
 destination capacity are checked again. A cancelled notice also cancels a
 resident's pending request elsewhere; an adult who already left keeps seeking

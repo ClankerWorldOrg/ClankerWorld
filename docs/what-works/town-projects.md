@@ -101,7 +101,7 @@ built. Up to six more stalls can fill the plaza; each needs separate Council
 approval, 4 wood, 2 fiber and 3 work units. The same Town-title, real supply,
 voluntary donation and shared construction rules apply. The built hall and
 plaza stay clear of other buildings, fields, trees and household land requests.
-The agreed [Market limit](../game-design/towns.md#agreed-content-and-building-sizes)
+The agreed [Market limit](../game-design/towns/buildings-and-projects.md#agreed-content-and-building-sizes)
 keeps this plaza at eight stalls; a Town that needs more builds a second Market.
 Building a second Market is unfinished.
 
@@ -210,8 +210,8 @@ whole group and have enough completed places. If no suitable home accepts them,
 one adult can start a household and pursue a House through the usual materials,
 legal-site and work rules. No House or materials are supplied for free. Leaving
 preserves Town membership and an empty household's property. See the
-[departure rules](../game-design/towns.md#household-goods-and-departure).
-The agreed [House resident limits and expansion](../game-design/towns.md#house-resident-capacity-and-relocation)
+[departure rules](../game-design/towns/households.md#household-goods-and-departure).
+The agreed [House resident limits and expansion](../game-design/towns/households.md#house-resident-capacity-and-relocation)
 are implemented by [#598](https://github.com/compoodment/ClankerWorld/issues/598).
 
 

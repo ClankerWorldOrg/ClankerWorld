@@ -147,7 +147,7 @@ chooses the recipe bound to the household's actual Blacksmith, including when
 checking work already running or materials the adult keeps for that cart.
 Storage still follows `BuildingStorageRules`; production capacity remains one.
 The current sizes and provisional costs are listed in
-[What works today](../../what-works.md#household-building-sizes).
+[What works today](../../what-works/households-and-buildings.md#household-building-sizes).
 
 Workstation recipes use only stock already at the building. A household
 building without its own dedicated hauling (every kind except the House,
@@ -170,7 +170,7 @@ do not reduce ingredient demand. After borrowing ends, reachable goods may
 reduce that demand under the normal pickup, source-reserve and capacity checks.
 
 House cooking and Restaurants use the named recipes in the
-[agreed food pipeline](../../game-design/towns.md#food-and-replanting). Generic
+[agreed food pipeline](../../game-design/towns/item-and-resource-pipelines.md#food-and-replanting). Generic
 food-to-food production is refused. Production reserves exact usable on-site
 inputs and room for its net storage growth; finishing consumes the reservations
 and stores two named servings, leaving water jugs intact. A runnable named meal

@@ -65,7 +65,7 @@ lives in `TreeGrowthRules` and is provisional ([#462](https://github.com/Clanker
   still match regeneration apart from the settlement's staged sites and valid
   planted trees; each planted tree must be a plantable species on legal ground,
   off Roads and buildings, with its growth record. See
-  [saves and replay](../saves-and-replay.md#current-formats-and-older-worlds).
+  [saves and replay](../saves-and-replay/formats-and-maps.md#current-formats-and-older-worlds).
 - **Art.** `UI/Graphics/TreeArtManifest.cs` in the client is the one list of
   tree art: species, stage, asset ID, sprite, source, licence and review
   status. The map reads its sprites and stage names from it. Broadleaf and
@@ -127,7 +127,7 @@ The transient reports do not change signed creation or saved map authority.
 Terrain version 2 adds mountain massifs and applies to every generated world,
 whatever its climate mode. Any other saved version is refused rather than
 replayed with different terrain rules (see
-[saves and replay](../saves-and-replay.md#current-formats-and-older-worlds)). Small
+[saves and replay](../saves-and-replay/formats-and-maps.md#current-formats-and-older-worlds)). Small
 and Medium remain the only playable sizes; no continent-count control is exposed
 for them. Existing saved water settings are
 not rewritten.

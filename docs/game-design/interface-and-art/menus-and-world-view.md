@@ -250,7 +250,7 @@ model list; the owner approved Decisions details on October 6
 
 **Agreed (confirmed 30 September):** placing an agent with Add Agent on a
 household's property joins that household without its consent, as recorded in
-[Towns](../towns.md#buildings-land-towns-and-animals). **Agreed on October 8
+[Towns](../towns/buildings-and-animals.md#buildings-land-towns-and-animals). **Agreed on October 8
 ([#1274](https://github.com/compoodment/ClankerWorld/issues/1274)):** the
 rest of this paragraph is agreed too, including the refusals it lists.
 
@@ -269,7 +269,7 @@ refused on an unbuildable, occupied or disputed tile, on a tile where another
 agent stands unless it is a House, and into a full House. A later voluntary
 move by an adult who has no household into a household's House needs every
 adult member's agreement, as agreed in
-[Towns](../towns.md#buildings-land-towns-and-animals).
+[Towns](../towns/buildings-and-animals.md#buildings-land-towns-and-animals).
 This forced Add Agent membership is distinct from inviting a nonmember to
 visit a House. The agreed first-Town household setup in
 [Agents and social life](../agents-and-families.md#agreed-starter-town-and-remaining-choices)

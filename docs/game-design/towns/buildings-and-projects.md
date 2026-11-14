@@ -179,7 +179,7 @@ street lanterns beside Roads; the map does not place them by itself. A lantern
 needs **no fuel**: once built it lights itself at dusk and goes out at dawn.
 There are two designs, a round **stone lamp** with an open flame and a
 **hanging lantern** on a roadside post with an arm over the Road
-([look](../interface-and-art.md#pixel-art-and-generated-images)). **Also agreed
+([look](../interface-and-art/pixel-art-and-generated-images.md#pixel-art-and-generated-images)). **Also agreed
 on October 3:** a lantern is a **shared Town project** like those above, so the
 proposal names the lanterns, their Road-side sites and their material budget,
 and the Council approves it before residents build. Costs are provisional

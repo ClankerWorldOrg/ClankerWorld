@@ -28,7 +28,7 @@ partnerships with the existing age, availability and close-kin constraints;
 parentage, guardianship and household membership retain their lifecycle rules.
 Every accepted command appends a player-facing `developer_edit` event containing
 the complete command, including its world and observation precondition.
-See [Saves and replay](../saves-and-replay.md#developer-edits) for retries and replay.
+See [Saves and replay](../saves-and-replay/validation-weather-and-events.md#developer-edits) for retries and replay.
 
 ## Developer tools readouts
 

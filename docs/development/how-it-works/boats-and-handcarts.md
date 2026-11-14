@@ -72,7 +72,7 @@ closed requests by sequence. It durably archives full older records before
 installing the smaller live queue; compact sequence ranges retain gaps around
 older active passengers. The `world_history_compacted` diagnostic includes live
 boat-request and retired-range counts. See
-[Saves and replay](../saves-and-replay.md#ports-and-communal-boats) for the schema,
+[Saves and replay](../saves-and-replay/towns-and-boats.md#ports-and-communal-boats) for the schema,
 archive-write ordering and recovery checks.
 
 ## Physical handcarts

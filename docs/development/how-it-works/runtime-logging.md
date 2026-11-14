@@ -82,7 +82,7 @@ A read-only diagnostic projection keeps the established log spelling. Food yield
 and Town membership fields remain separate values. Existing entries use the current saved name, including
 deceased profiles. Model-decision and Town telemetry likewise keep complete IDs.
 Server descriptions leave accepted payloads unchanged. The typed saved format is
-documented in [Saves and replay](../saves-and-replay.md#typed-world-events).
+documented in [Saves and replay](../saves-and-replay/validation-weather-and-events.md#typed-world-events).
 
 The owner snapshot projects the saved continuity rule's current on/off state.
 Godot uses it to keep an **Add a newcomer** offer in the Event Log while the

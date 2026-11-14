@@ -95,7 +95,7 @@ Roads or bridge entrances; a refused planting keeps the seed. A sapling takes 3 
 do not spread on their own. Tree-planting tasks support quantities, a chosen
 species and an exact tile outside Town borders. Adults fetch a real permitted
 seed if needed, walk to the site and count only completed saplings. See the
-[task examples](../playing.md#look-around).
+[task examples](../playing/orders.md#orders).
 
 Orchard fruit trees bear fruit only in autumn. They are growing (leaves only)
 the rest of the year and drop any fruit left when autumn ends. A picked tree

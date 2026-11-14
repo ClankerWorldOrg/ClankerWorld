@@ -174,7 +174,7 @@ This page covers the game's pixel art and invention pictures.
 - **Street lanterns, agreed on October 3:** agents build street lanterns
   beside Roads; they need **no fuel** and light themselves at dusk. Two
   designs: **B, a round stone lamp with an open flame**, and **C, a lantern
-  hung from an arm over the Road** ([Towns](../towns.md#shared-town-projects)).
+  hung from an arm over the Road** ([Towns](../towns/buildings-and-projects.md#shared-town-projects)).
   **Agreed on October 7:** in an abandoned Town they stay dark until the
   Town is resettled.
 - **Agreed after the fourth round of the art review (October 7):**

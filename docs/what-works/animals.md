@@ -79,6 +79,6 @@ of each wool cycle. An animal that moves shows walking steps, hooves (or a
 hen's feet) stepping out from under it, and stands still again when it stops.
 The animal yard is a split-rail pen on trampled earth with an open gate, a
 water trough and hay.
-See [animal controls](../playing.md#animals) and the [approved decision](https://github.com/compoodment/ClankerWorld/pull/1027).
+See [animal controls](../playing/households-and-animals.md#animals) and the [approved decision](https://github.com/compoodment/ClankerWorld/pull/1027).
 All balance values are provisional. Hunting, slaughter, meat, predators,
 neglect deaths, horse-drawn carts and animal boat transport remain excluded.

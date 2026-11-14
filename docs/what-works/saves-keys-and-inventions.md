@@ -114,7 +114,7 @@ server. This page does not verify the owner's installed game or running server.
 
 New World includes Low/Normal/High terrain controls under More options and a
 resettable 50%-water preset for Small and Medium. All settings feed the matching
-preview and saved generation options. See [More New World options](../playing.md#more-new-world-options);
+preview and saved generation options. See [More New World options](../playing/creating-a-world.md#more-new-world-options);
 Windows interaction and real preview latency still need playtesting.
 
 ## Permanent deletion
@@ -124,7 +124,7 @@ title screen before entering the current world. Load World offers
 separate deletion of an inactive world and all its saves. Other worlds, provider
 credentials and pairing remain unchanged. Interrupted deletion stays hidden
 from loading and is retried on server startup. Native Windows interaction still
-needs playtesting. See [save controls](../playing.md#save-and-return).
+needs playtesting. See [save controls](../playing/saving-and-reporting.md#save-and-return).
 
 Save World also offers **Preview cleanup** for recovery history. It starts with
 a provisional three verified copies per save (adjustable from one to ten), keeps

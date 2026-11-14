@@ -202,7 +202,7 @@ building for free. Its waiting message explains that work retries when the
 approved site is usable and reachable and the required materials are available.
 If its site can no longer be used, the Town stops the
 project and the Towns page says why; its leftover materials stay Town
-property where they are. See [What works today](../what-works.md#life-work-and-society)
+property where they are. See [What works today](../what-works/town-projects.md)
 for this first version's limits and provisional amounts. Its
 [hands-on checklist](../../playtest/alpha-1.md) remains pending.
 

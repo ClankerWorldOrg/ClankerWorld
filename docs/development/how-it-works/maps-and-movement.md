@@ -93,7 +93,7 @@ stop short on a building's interior approach tiles.
 Construction-site reachability uses the same walls. Placement and expansion
 leave existing doorways outdoors and require usable ground for a new doorway;
 Developer map edits cannot cover an existing doorway.
-Strict restore checks doorways too; [Saves and replay](../saves-and-replay.md#building-doorways)
+Strict restore checks doorways too; [Saves and replay](../saves-and-replay/load-and-identities.md#building-doorways)
 owns the validation and alpha compatibility rules.
 
 Movement reads water and elevation; build eligibility also reads surface.
@@ -264,7 +264,7 @@ Local survival and crop exposure use the active episode. Soil moisture retains
 the older three-day daily-weather estimate in this first experiment; it is not
 a saved moisture grid or an episode-integrated rainfall model. Existing saves
 keep their active weather when loaded; the first resumed tick imports it into
-an episode. See [save handling](../saves-and-replay.md#regional-weather-episodes).
+an episode. See [save handling](../saves-and-replay/validation-weather-and-events.md#regional-weather-episodes).
 
 The client renders the approved pixel-streak overlay through `WeatherStreaks`:
 straight rain and three-pixel landing bursts, two-down-one-across storm streaks

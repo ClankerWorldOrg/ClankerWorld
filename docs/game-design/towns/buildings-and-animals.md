@@ -35,7 +35,7 @@ Building types, animal care, products, breeding and horse travel.
   resident count. Invited visitors and temporary storm guests do not take
   resident places. The House has no bed or sleep-recovery
   role. A selected building exposes inspectable occupants, stock and ownership in a panel
-  ([quick card and Details](../interface-and-art.md));
+  ([quick card and Details](../interface-and-art/panels-and-player-guidance.md));
   there are **no visible/enterable room interiors**.
 - **Building expansion:** a House starts at **1×1** and can expand to **1×2**
   or **2×2** when its household needs more storage or resident places.

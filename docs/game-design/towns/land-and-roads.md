@@ -153,9 +153,9 @@ can bridge two-tile crossings too. Only actual traversal counts, not route
 previews, failed attempts or waiting. Keep bounded crossing evidence across
 saves; the threshold can be tuned after playtesting. Generated-Road bridges
 need not wait for this traffic. [What works
-today](../../what-works.md#maps-weather-and-appearance) says what normal play
+today](../../what-works/maps-weather-and-appearance.md#maps-weather-and-appearance) says what normal play
 shows so far, and [How it
-works](../../development/how-it-works.md#roads-and-bridges) says how the same
+works](../../development/how-it-works/roads-and-projects.md#roads-and-bridges) says how the same
 connected banks are compared.
 
 **Roads and bridges remain permanently** once built. They do not decay or

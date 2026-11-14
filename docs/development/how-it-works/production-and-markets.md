@@ -28,7 +28,7 @@ Godot Details refreshes these facts even when work progress stays unchanged.
 Missing fields from an older server leave recipe facts unavailable rather than
 fabricating them. The recipe-facts projection changes neither world state nor agent
 knowledge; the production-retention format is described in
-[Saves and replay](../saves-and-replay.md#bounded-production-history).
+[Saves and replay](../saves-and-replay/memories-and-history.md#bounded-production-history).
 
 
 A recipe project that finds its work site busy waits with the blocker "Waiting
@@ -191,7 +191,7 @@ open-offer and payment bindings still needed by actual stock. Receipt sequences
 survive retirement; an explicit boundary allows closed source history to leave
 without granting selling authority. Closed inventory offers and claims retire
 with their Market records, while paid construction/removal and physical property
-remain intact. The [Market save rules](../saves-and-replay.md#paid-markets-and-stall-trade)
+remain intact. The [Market save rules](../saves-and-replay/markets-and-trade.md#paid-markets-and-stall-trade)
 explain live bindings and archive/recovery behavior.
 
 Loads, borrowing, deposits, collection and barter mutations need a fresh
@@ -236,7 +236,7 @@ later stall borrower cannot sell an earlier borrower's stock. Its recorded
 owner, or a current member of the owning household, may physically collect it.
 Live inventory ownership remains authoritative after inheritance or collection.
 Customer access remains limited to the named transaction. See the
-[Market save rules](../saves-and-replay.md#paid-markets-and-stall-trade) for the
+[Market save rules](../saves-and-replay/markets-and-trade.md#paid-markets-and-stall-trade) for the
 saved layout, stock and offer checks.
 
 Missing-input demand checks the buyer's actual production owner, keeping each

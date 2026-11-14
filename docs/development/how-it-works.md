@@ -29,7 +29,7 @@ server's versioned HTTP contract. Legacy web assets are diagnostic tools.
 32-record recent window, retained cart-order and hearing proof, and older audit
 records. The normal checkpoint writer archives the audit records before
 installing the smaller live inventory. Active claims and physical goods stay
-with inventory authority; [Saves and replay](saves-and-replay.md#checkpoints-history-and-backups)
+with inventory authority; [Saves and replay](saves-and-replay/checkpoints-and-recovery.md#checkpoints-history-and-backups)
 owns the archive count and recovery contract.
 
 - **The server commits world state.** Client requests, model replies, mods and

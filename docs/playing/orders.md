@@ -342,5 +342,5 @@ the task and its selected destination.
 An order the game cannot understand leaves the current one running.
 Unsupported requests, such as "build a castle" or "gather cloth," close as not
 understood and appear in the Event Log. Recognized orders follow normal access
-and survival rules. [What works today](../what-works.md#agents-and-their-models)
+and survival rules. [What works today](../what-works/orders-and-goods.md)
 has the details.

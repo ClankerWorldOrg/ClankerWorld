@@ -176,7 +176,7 @@ For menus, controls and Developer tools, see [Main Menu, world view, and control
   the answer is ambiguous, the placement is refused and the game explains why.
   It is never decided by list order or distance. How claims and use rights
   work, and how Add Agent uses them, is in
-  [Town land and household use rights](../towns.md#town-land-and-household-use-rights).
+  [Town land and household use rights](../towns/land-and-roads.md#town-land-and-household-use-rights).
 - Selecting an agent opens an **interactive info popup near that agent**. The
   player can change that agent's provider and model there, including choosing
   an appropriate stored/new credential when needed. **Agreed on October 8
@@ -304,5 +304,5 @@ It does not hold up later suggestions or orders. A recognized task that cannot
 be carried out yet keeps waiting, including across saves. Blocked tasks retry
 on the agent's usual decision schedule, without paid polling on every tick.
 
-**These are intended rules.** [What works today](../../what-works.md#agents-and-their-models)
+**These are intended rules.** [What works today](../../what-works/orders-and-goods.md)
 describes the supported food orders and the remaining catalogue.

@@ -241,7 +241,7 @@ detailed actions. See [combat](../agents-and-families.md#combat) and
 This stage makes, stores and trades bandages, but does not create injuries or
 apply bandages to a patient. Medicine uses the existing illness system and
 supports recovery gradually. The injury stage is agreed below. See
-[current availability](../../what-works.md#life-work-and-society) for the build and
+[current availability](../../what-works/life-work-and-society.md#life-work-and-society) for the build and
 pending Windows checks.
 
 **Injuries, agreed on October 8

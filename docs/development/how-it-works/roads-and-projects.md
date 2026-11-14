@@ -13,7 +13,7 @@ This page describes roads, bridges and Council-approved street lanterns.
 
 Roads and bridges are world-owned and permanent. Walking never adds a Road
 tile. The agreed rules are in
-[Towns](../../game-design/towns.md#how-roads-and-bridges-appear); this section
+[Towns](../../game-design/towns/land-and-roads.md#how-roads-and-bridges-appear); this section
 describes how the current code applies them.
 
 **One saved crossing for everything.** A bridge is a saved record with a stable
@@ -116,7 +116,7 @@ The same actual delivery reservations and work receipts pay for completion;
 direct placement cannot bypass them. Lanterns are excluded from doorway-based
 Road generation and extension. Derived project tags let the owner client show
 Road-side facts without guessing from names or dimensions. The saved receipt
-rules and schema are in [Saves and replay](../saves-and-replay.md#council-approved-town-projects).
+rules and schema are in [Saves and replay](../saves-and-replay/towns-and-boats.md#council-approved-town-projects).
 
 The normal map draws those projected fittings with Claude's approved
 `NightLightShapes.StreetLantern` renderer. It uses the bound Road tile and edge,
