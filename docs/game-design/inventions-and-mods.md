@@ -47,7 +47,7 @@ roster; invention pictures and their placeholder are agreed below.
   invention's picture is built only from approved code-drawn parts and
   recolouring, never as an AI-generated image, and a plain placeholder stands
   in when that fails, so a working invention is never blocked by its art
-  ([Interface and art](interface-and-art.md#pixel-art-and-generated-images)
+  ([Interface and art](interface-and-art/pixel-art-and-generated-images.md#pixel-art-and-generated-images)
   has the details).
 - The design direction combines **data describing game content** with **scripts run in a
   restricted environment**. Valid inventions can activate in the running world at

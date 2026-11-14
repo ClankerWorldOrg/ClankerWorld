@@ -56,7 +56,7 @@ against the owner's actual decision. The October 1 approval of complete
 those sources, work sites, uses and physical stock/trade rules; balance remains
 provisional.
 
-The player's [role and intervention controls](interface-and-art.md#player-guidance-and-orders)
+The player's [role and intervention controls](interface-and-art/panels-and-player-guidance.md#player-guidance-and-orders)
 are agreed: the observer can send suggestions and orders through the game's
 normal rules. Their current availability is recorded in
 [what works today](../what-works.md).
