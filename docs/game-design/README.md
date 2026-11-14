@@ -52,7 +52,7 @@ Each chapter owns its design choices. The content list supplies the detailed
 agreed catalogue; accepting an item or building does not also decide its recipe,
 price, storage capacity or development order. Reconcile conflicting summaries
 against the owner's actual decision. The October 1 approval of complete
-[item and resource pipelines](towns.md#item-and-resource-pipelines) settles
+[item and resource pipelines](towns/item-and-resource-pipelines.md#item-and-resource-pipelines) settles
 those sources, work sites, uses and physical stock/trade rules; balance remains
 provisional.
 

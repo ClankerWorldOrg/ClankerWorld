@@ -391,7 +391,7 @@ everything that is available in the current build. See [what works today](../wha
   the answer is ambiguous, the placement is refused and the game explains why.
   It is never decided by list order or distance. How claims and use rights
   work, and how Add Agent uses them, is in
-  [Town land and household use rights](towns.md#town-land-and-household-use-rights).
+  [Town land and household use rights](towns/land-and-roads.md#town-land-and-household-use-rights).
 - Selecting an agent opens an **interactive info popup near that agent**. The
   player can change that agent's provider and model there, including choosing
   an appropriate stored/new credential when needed. **Agreed on October 8
@@ -561,7 +561,7 @@ model list; the owner approved Decisions details on October 6
 
 **Agreed (confirmed 30 September):** placing an agent with Add Agent on a
 household's property joins that household without its consent, as recorded in
-[Towns](towns.md#buildings-land-towns-and-animals). **Agreed on October 8
+[Towns](towns/buildings-and-animals.md#buildings-land-towns-and-animals). **Agreed on October 8
 ([#1274](https://github.com/compoodment/ClankerWorld/issues/1274)):** the
 rest of this paragraph is agreed too, including the refusals it lists.
 
@@ -580,7 +580,7 @@ refused on an unbuildable, occupied or disputed tile, on a tile where another
 agent stands unless it is a House, and into a full House. A later voluntary
 move by an adult who has no household into a household's House needs every
 adult member's agreement, as agreed in
-[Towns](towns.md#buildings-land-towns-and-animals).
+[Towns](towns/buildings-and-animals.md#buildings-land-towns-and-animals).
 This forced Add Agent membership is distinct from inviting a nonmember to
 visit a House. The agreed first-Town household setup in
 [Agents and social life](agents-and-families.md#agreed-starter-town-and-remaining-choices)
@@ -760,7 +760,7 @@ provide a UI drawing.
 - **Street lanterns, agreed on October 3:** agents build street lanterns
   beside Roads; they need **no fuel** and light themselves at dusk. Two
   designs: **B, a round stone lamp with an open flame**, and **C, a lantern
-  hung from an arm over the Road** ([Towns](towns.md#shared-town-projects)).
+  hung from an arm over the Road** ([Towns](towns/buildings-and-projects.md#shared-town-projects)).
   **Agreed on October 7:** in an abandoned Town they stay dark until the
   Town is resettled.
 - **Agreed after the fourth round of the art review (October 7):**

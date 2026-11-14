@@ -178,6 +178,8 @@ const AreaRules = {
     'src/ClankerWorld.Simulation/World/Economy/',
     'src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Production.cs',
     'docs/game-design/towns.md',
+    'docs/game-design/towns/',
+    'docs/archive/towns-history.md',
     'docs/game-design/content-list.md',
     'docs/game-design/inventions-and-mods.md',
   ],
