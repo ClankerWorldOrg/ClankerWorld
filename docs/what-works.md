@@ -848,7 +848,7 @@ of each wool cycle. An animal that moves shows walking steps, hooves (or a
 hen's feet) stepping out from under it, and stands still again when it stops.
 The animal yard is a split-rail pen on trampled earth with an open gate, a
 water trough and hay.
-See [animal controls](playing.md#animals) and the [approved decision](https://github.com/compoodment/ClankerWorld/pull/1027).
+See [animal controls](playing/households-and-animals.md#animals) and the [approved decision](https://github.com/compoodment/ClankerWorld/pull/1027).
 All balance values are provisional. Hunting, slaughter, meat, predators,
 neglect deaths, horse-drawn carts and animal boat transport remain excluded.
 
@@ -1677,7 +1677,7 @@ Roads or bridge entrances; a refused planting keeps the seed. A sapling takes 3 
 do not spread on their own. Tree-planting tasks support quantities, a chosen
 species and an exact tile outside Town borders. Adults fetch a real permitted
 seed if needed, walk to the site and count only completed saplings. See the
-[task examples](playing.md#look-around).
+[task examples](playing/orders.md#orders).
 
 Orchard fruit trees bear fruit only in autumn. They are growing (leaves only)
 the rest of the year and drop any fruit left when autumn ends. A picked tree
@@ -1853,7 +1853,7 @@ server. This page does not verify the owner's installed game or running server.
 
 New World includes Low/Normal/High terrain controls under More options and a
 resettable 50%-water preset for Small and Medium. All settings feed the matching
-preview and saved generation options. See [More New World options](playing.md#more-new-world-options);
+preview and saved generation options. See [More New World options](playing/creating-a-world.md#more-new-world-options);
 Windows interaction and real preview latency still need playtesting.
 
 ## Permanent deletion
@@ -1863,7 +1863,7 @@ title screen before entering the current world. Load World offers
 separate deletion of an inactive world and all its saves. Other worlds, provider
 credentials and pairing remain unchanged. Interrupted deletion stays hidden
 from loading and is retried on server startup. Native Windows interaction still
-needs playtesting. See [save controls](playing.md#save-and-return).
+needs playtesting. See [save controls](playing/saving-and-reporting.md#save-and-return).
 
 Save World also offers **Preview cleanup** for recovery history. It starts with
 a provisional three verified copies per save (adjustable from one to ten), keeps
