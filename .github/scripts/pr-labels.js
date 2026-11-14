@@ -206,6 +206,7 @@ const AreaRules = {
     'src/ClankerWorld.GodotClient/',
     'docs/game-design/interface-and-art.md',
     'docs/game-design/interface-and-art/',
+    'docs/archive/interface-and-art-history.md',
     'docs/playing.md',
     'docs/playing/',
   ],

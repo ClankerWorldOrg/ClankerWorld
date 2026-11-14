@@ -123,7 +123,7 @@ public sealed partial class DocumentationTests
         var root = RuntimeWriterScan.RepositoryRoot;
         var statusLines = new List<string>();
         foreach (var path in Directory
-                     .EnumerateFiles(Path.Combine(root, "docs", "game-design"), "*.md")
+                     .EnumerateFiles(Path.Combine(root, "docs", "game-design"), "*.md", SearchOption.AllDirectories)
                      .Order(StringComparer.Ordinal))
         {
             var lines = File.ReadAllLines(path);
