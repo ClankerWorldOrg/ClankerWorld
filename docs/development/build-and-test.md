@@ -537,7 +537,7 @@ the bundled
 allows Play on this PC to launch the matching game with `--hosted-world` and
 the running host's data choice; older games are refused before launch.
 The host screen and sign-in behavior are described
-in [Playing](../playing.md#host-a-world-for-other-devices); its pending
+in [Playing](../playing/installation-and-connection.md#host-a-world-for-other-devices); its pending
 Windows/Tailscale checks are in the playtest list.
 
 The launcher ([#1566](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1566))

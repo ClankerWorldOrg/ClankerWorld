@@ -8,7 +8,7 @@ updated: 2026-11-14
 # Saves and replay
 
 This page owns save implementation and recovery requirements. The
-[player guide](../playing.md#save-and-return) explains the controls;
+[player guide](../playing/saving-and-reporting.md#save-and-return) explains the controls;
 [game design](../game-design/saves.md) owns the intended experience.
 
 
