@@ -100,7 +100,7 @@ everything that is available in the current build. See [what works today](../wha
   naming request gives no cultural context. It carries only the naming rules
   (a full name, with a first name nobody else in the world has), the
   first-letter hint and, for a child, its parents' surnames.
-  [Player renaming](interface-and-art.md#player-guidance-and-orders) uses the
+  [Player renaming](interface-and-art/panels-and-player-guidance.md#player-guidance-and-orders) uses the
   same first-name check and preserves the person's identity and historical text.
   Building the new rule is tracked in
   [#912](https://github.com/compoodment/ClankerWorld/issues/912).
@@ -367,7 +367,7 @@ everything that is available in the current build. See [what works today](../wha
   Until acceptance, the child stays where they are, nearby adults
   may still feed them, and the player can see the unmet guardian need and
   suggest an adult in a message, or give an adult the
-  [order](interface-and-art.md#player-guidance-and-orders) **Become guardian
+  [order](interface-and-art/panels-and-player-guidance.md#player-guidance-and-orders) **Become guardian
   for …** with the child's name, which uses the same eligibility rules.
   The one-day interval for each group is provisional.
 

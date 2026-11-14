@@ -242,7 +242,7 @@ is the only player for now, so this waits until then.
   season, and four real hours per year. Each 10-day month is one season, so
   dates use season names by default, such as **Autumn 2, Year 1**, with numeric
   dates as a setting
-  ([Interface and art](interface-and-art.md#main-menu-world-view-and-controls)).
+  ([Interface and art](interface-and-art/menus-and-world-view.md#main-menu-world-view-and-controls)).
   A six-hour maximum life from birth would then
   span at most 60 world days, 1.5 years, or six seasons. These numbers may be
   changed after playtesting; they are not final performance or pacing promises.
@@ -310,7 +310,7 @@ still needs playtesting.
   zooms out until the view spans 70% of a Small or Medium map, and the larger
   sizes share one floor of 8 pixels per tile. Both numbers are provisional, for
   playtesting; see
-  [Interface and art](interface-and-art.md#main-menu-world-view-and-controls).
+  [Interface and art](interface-and-art/menus-and-world-view.md#main-menu-world-view-and-controls).
 - Use **64×64 logical tiles per chunk** as the starting arrangement target.
   Chunks help storage, loading, and rendering without forcing an entire chunk
   into one giant texture. Rendering only what the camera sees is distinct from
