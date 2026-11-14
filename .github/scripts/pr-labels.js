@@ -196,6 +196,8 @@ const AreaRules = {
     'src/ClankerWorld.Server/Saves/',
     'src/ClankerWorld.Server/Worlds/',
     'docs/development/saves-and-replay.md',
+    'docs/development/saves-and-replay/',
+    'docs/archive/saves-and-replay-history.md',
     'docs/game-design/saves.md',
   ],
   'area:interface': [

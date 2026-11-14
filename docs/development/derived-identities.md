@@ -155,7 +155,7 @@ derived generator, route it through `DerivedId`, add its actual factory or
 transition to the native inventory, and check any saved producer/consumer
 recomputation together.
 
-See [Saves and replay](saves-and-replay.md#bounded-derived-identities) for the
+See [Saves and replay](saves-and-replay/load-and-identities.md#bounded-derived-identities) for the
 schema boundary and older-save behavior.
 
 ## Hard test worlds
