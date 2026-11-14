@@ -93,7 +93,7 @@ aliases. Content package identifiers retain their import rules.
 32-record recent window, retained cart-order and hearing proof, and older audit
 records. The normal checkpoint writer archives the audit records before
 installing the smaller live inventory. Active claims and physical goods stay
-with inventory authority; [Saves and replay](saves-and-replay.md#checkpoints-history-and-backups)
+with inventory authority; [Saves and replay](saves-and-replay/checkpoints-and-recovery.md#checkpoints-history-and-backups)
 owns the archive count and recovery contract.
 
 - **The server commits world state.** Client requests, model replies, mods and
@@ -3186,7 +3186,7 @@ stop short on a building's interior approach tiles.
 Construction-site reachability uses the same walls. Placement and expansion
 leave existing doorways outdoors and require usable ground for a new doorway;
 Developer map edits cannot cover an existing doorway.
-Strict restore checks doorways too; [Saves and replay](saves-and-replay.md#building-doorways)
+Strict restore checks doorways too; [Saves and replay](saves-and-replay/load-and-identities.md#building-doorways)
 owns the validation and alpha compatibility rules.
 
 Movement reads water and elevation; build eligibility also reads surface.
@@ -3357,7 +3357,7 @@ Local survival and crop exposure use the active episode. Soil moisture retains
 the older three-day daily-weather estimate in this first experiment; it is not
 a saved moisture grid or an episode-integrated rainfall model. Existing saves
 keep their active weather when loaded; the first resumed tick imports it into
-an episode. See [save handling](saves-and-replay.md#regional-weather-episodes).
+an episode. See [save handling](saves-and-replay/validation-weather-and-events.md#regional-weather-episodes).
 
 The client renders the approved pixel-streak overlay through `WeatherStreaks`:
 straight rain and three-pixel landing bursts, two-down-one-across storm streaks
@@ -3607,7 +3607,7 @@ Godot Details refreshes these facts even when work progress stays unchanged.
 Missing fields from an older server leave recipe facts unavailable rather than
 fabricating them. The recipe-facts projection changes neither world state nor agent
 knowledge; the production-retention format is described in
-[Saves and replay](saves-and-replay.md#bounded-production-history).
+[Saves and replay](saves-and-replay/memories-and-history.md#bounded-production-history).
 
 ## Towns, building sites and death
 
@@ -4743,7 +4743,7 @@ open-offer and payment bindings still needed by actual stock. Receipt sequences
 survive retirement; an explicit boundary allows closed source history to leave
 without granting selling authority. Closed inventory offers and claims retire
 with their Market records, while paid construction/removal and physical property
-remain intact. The [Market save rules](saves-and-replay.md#paid-markets-and-stall-trade)
+remain intact. The [Market save rules](saves-and-replay/markets-and-trade.md#paid-markets-and-stall-trade)
 explain live bindings and archive/recovery behavior.
 
 Loads, borrowing, deposits, collection and barter mutations need a fresh
@@ -4788,7 +4788,7 @@ later stall borrower cannot sell an earlier borrower's stock. Its recorded
 owner, or a current member of the owning household, may physically collect it.
 Live inventory ownership remains authoritative after inheritance or collection.
 Customer access remains limited to the named transaction. See the
-[Market save rules](saves-and-replay.md#paid-markets-and-stall-trade) for the
+[Market save rules](saves-and-replay/markets-and-trade.md#paid-markets-and-stall-trade) for the
 saved layout, stock and offer checks.
 
 Missing-input demand checks the buyer's actual production owner, keeping each
@@ -5301,7 +5301,7 @@ The same actual delivery reservations and work receipts pay for completion;
 direct placement cannot bypass them. Lanterns are excluded from doorway-based
 Road generation and extension. Derived project tags let the owner client show
 Road-side facts without guessing from names or dimensions. The saved receipt
-rules and schema are in [Saves and replay](saves-and-replay.md#council-approved-town-projects).
+rules and schema are in [Saves and replay](saves-and-replay/towns-and-boats.md#council-approved-town-projects).
 
 The normal map draws those projected fittings with Claude's approved
 `NightLightShapes.StreetLantern` renderer. It uses the bound Road tile and edge,
@@ -5439,7 +5439,7 @@ A read-only diagnostic projection keeps the established log spelling. Food yield
 and Town membership fields remain separate values. Existing entries use the current saved name, including
 deceased profiles. Model-decision and Town telemetry likewise keep complete IDs.
 Server descriptions leave accepted payloads unchanged. The typed saved format is
-documented in [Saves and replay](saves-and-replay.md#typed-world-events).
+documented in [Saves and replay](saves-and-replay/validation-weather-and-events.md#typed-world-events).
 
 The owner snapshot projects the saved continuity rule's current on/off state.
 Godot uses it to keep an **Add a newcomer** offer in the Event Log while the
@@ -5481,7 +5481,7 @@ partnerships with the existing age, availability and close-kin constraints;
 parentage, guardianship and household membership retain their lifecycle rules.
 Every accepted command appends a player-facing `developer_edit` event containing
 the complete command, including its world and observation precondition.
-See [Saves and replay](saves-and-replay.md#developer-edits) for retries and replay.
+See [Saves and replay](saves-and-replay/validation-weather-and-events.md#developer-edits) for retries and replay.
 
 ## Developer tools readouts
 
@@ -5653,7 +5653,7 @@ closed requests by sequence. It durably archives full older records before
 installing the smaller live queue; compact sequence ranges retain gaps around
 older active passengers. The `world_history_compacted` diagnostic includes live
 boat-request and retired-range counts. See
-[Saves and replay](saves-and-replay.md#ports-and-communal-boats) for the schema,
+[Saves and replay](saves-and-replay/towns-and-boats.md#ports-and-communal-boats) for the schema,
 archive-write ordering and recovery checks.
 
 ## Physical handcarts
@@ -5803,7 +5803,7 @@ lives in `TreeGrowthRules` and is provisional ([#462](https://github.com/Clanker
   still match regeneration apart from the settlement's staged sites and valid
   planted trees; each planted tree must be a plantable species on legal ground,
   off Roads and buildings, with its growth record. See
-  [saves and replay](saves-and-replay.md#current-formats-and-older-worlds).
+  [saves and replay](saves-and-replay/formats-and-maps.md#current-formats-and-older-worlds).
 - **Art.** `UI/Graphics/TreeArtManifest.cs` in the client is the one list of
   tree art: species, stage, asset ID, sprite, source, licence and review
   status. The map reads its sprites and stage names from it. Broadleaf and
@@ -5865,7 +5865,7 @@ The transient reports do not change signed creation or saved map authority.
 Terrain version 2 adds mountain massifs and applies to every generated world,
 whatever its climate mode. Any other saved version is refused rather than
 replayed with different terrain rules (see
-[saves and replay](saves-and-replay.md#current-formats-and-older-worlds)). Small
+[saves and replay](saves-and-replay/formats-and-maps.md#current-formats-and-older-worlds)). Small
 and Medium remain the only playable sizes; no continent-count control is exposed
 for them. Existing saved water settings are
 not rewritten.
@@ -6043,7 +6043,7 @@ after returning still enters normally.
 
 The manual Save World and Load Save dialog owns one list read per opening.
 Load World embeds those same history controls when a world is selected, using
-the [catalog save-history read](saves-and-replay.md#browsing-saves-from-load-world)
+the [catalog save-history read](saves-and-replay/load-and-identities.md#browsing-saves-from-load-world)
 without activating the world.
 Closing it, creating, overwriting or deleting a save, or starting another opening
 cancels the previous read. Late success and failure replies cannot replace current rows,

@@ -67,7 +67,7 @@ beside the provider configuration file. An older process or different working
 directory may have used another location. Identify all possible old and new
 meter locations before switching; a missing file is not proof that no calls
 were spent. Back up private service configuration and environment files too.
-See [Checkpoints, history and backups](saves-and-replay.md#checkpoints-history-and-backups)
+See [Checkpoints, history and backups](saves-and-replay/checkpoints-and-recovery.md#checkpoints-history-and-backups)
 for the complete backup set.
 
 1. Pause through the approved client's signed control path. Confirm the pause
