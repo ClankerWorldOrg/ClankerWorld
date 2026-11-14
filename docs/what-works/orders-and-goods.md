@@ -189,7 +189,7 @@ Raw grain and potatoes use the goods catalogue below. Quantities,
 source tiles, carrying limits, queues, interruptions and reload work as above.
 
 Equipment collection covers the five clothing and carrying-aid kinds and the
-13 tool kinds described below: "collect my basket", "collect two iron knives"
+13 tool kinds described in [Orders for work](orders-for-work.md): "collect my basket", "collect two iron knives"
 or "keep collecting padded coats". Add a source tile in the same way as other
 collections. The agent picks up its own goods without equipping or repairing
 them; their condition stays unchanged. Each unit occupies ordinary carrying

@@ -205,7 +205,7 @@ The Profile shows public admission status and its deadline; the
 agent's model only learns admission status from notices they read or were told.
 The approval, lapse and admission events name what happened. Moving from one
 Town to another leaves the old Town in the same step. Agents can found further
-Towns through the normal play path described above.
+Towns through the normal play path described in [Life stages and estates](life-stages-and-estates.md).
 
 
 See [Town founding](life-stages-and-estates.md) for the normal play path.
