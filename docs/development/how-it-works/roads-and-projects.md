@@ -34,11 +34,11 @@ coast, a third water tile, a mountain bank or an existing deck ends the search,
 so those are never bridged. Crossings can run across the east/west seam of a
 wrapping map.
 
-**Streets that meet a river.** Town growth (above) can cross a river up to two
+**Streets that meet a river.** Town growth (in [Town building sites](town-building-sites.md#town-building-sites)) can cross a river up to two
 tiles wide on a new bridge, in two places:
 
 - A new side street is found by `RoadRoutePlanner`, which applies the side-street
-  rules above and searches at most 32,768 tiles. Besides ground steps it may
+  rules in [Town building sites](town-building-sites.md#town-building-sites) and searches at most 32,768 tiles. Besides ground steps it may
   cross an existing bridge, or a new crossing, in a straight cardinal line. A
   new crossing costs 200 per river tile, like wading a one-tile river, so an
   existing bridge is cheaper. Ties break by cost, then row, then column, then

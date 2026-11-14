@@ -92,8 +92,8 @@ and retains no coordinator reference.
 stock-position and urgent-need rules. Its live adapter supplies the current
 society, positions, distance, building storage and warmth calculation. The
 adapter stays on the coordinator across tick commits; physical queries are
-never cached. Ground occupancy uses the named layers described above; the
-goods query is described below. Snapshot-keyed
+never cached. Ground occupancy uses the named layers described in [runtime action checks](runtime-action-checks.md); the
+goods query is described in [Finding goods](finding-goods.md#finding-goods). Snapshot-keyed
 derived values must be pure, unsaved and absent from digests. Immutable
 snapshots can pass through the trusted tick copy by reference; replacing a
 snapshot invalidates its derived values without letting a discarded tick
