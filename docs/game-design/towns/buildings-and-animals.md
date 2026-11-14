@@ -17,7 +17,7 @@ Building types, animal care, products, breeding and horse travel.
   choosing freely from every shape/material/floor/state combination. There is
   initially **one standard appearance per supported design**; duplicate houses
   of the same type and size may look alike. The decided footprints are listed
-  below and in the [accepted asset roster](../content-list.md). Agents
+  in [Agreed content and building sizes](buildings-and-projects.md#agreed-content-and-building-sizes) and in the [accepted asset roster](../content-list.md). Agents
   may invent new designs, including unusual shapes if the art and world rules
   can represent them; larger, irregular, or multi-floor buildings are therefore
   possibilities, not automatic unlocks. **House** replaces Shelter as the
@@ -74,7 +74,7 @@ Building types, animal care, products, breeding and horse travel.
   access, terrain, resources, land-use rights, and Town context. A Town holds
   title to its formally claimed land; households can receive recorded rights
   to use particular sites without owning the land itself. Land rights can be
-  disputed; permission, transfers and case procedures are agreed below.
+  disputed; permission, transfers and case procedures are agreed in [Town land and household use rights](land-and-roads.md#town-land-and-household-use-rights) and [Land hearings and rulings](laws-and-enforcement.md#land-hearings-and-rulings).
   **Agreed on October 8 ([#1256](https://github.com/compoodment/ClankerWorld/issues/1256)):**
   before any currency exists, a household can sell a use right for goods
   through the ordinary consent-based transfer; money prices come later with a
@@ -123,7 +123,7 @@ Building types, animal care, products, breeding and horse travel.
 - **Warehouse** replaces Storehouse. It is communal: it holds actual
   inspectable resource stock at its location for agents/households resident in
   its recorded Town. Food belongs at home instead. Ordinary access is for
-  residents, with the agreed abandoned-Town salvage exception below, checked
+  residents, with the agreed abandoned-Town salvage exception in [Borders, abandoned Towns and salvage](town-membership.md#borders-abandoned-towns-and-salvage), checked
   when they pick something up; what someone already
   carries stays theirs. Use [recorded Town membership](town-membership.md#town-membership),
   including homeless residents. The recorded Town controls access even if a
@@ -156,7 +156,7 @@ Building types, animal care, products, breeding and horse travel.
   outright as soon as the Tailor Shop works, with no legacy transition; old
   alpha saves need not keep loading, and no migration code is written for them
   (see [Saves](../saves.md)). Its recipe numbers, costs
-  and work time are **provisional** and will be tuned in playtests; this chapter
+  and work time are **provisional** and will be tuned in playtests; [this chapter](../towns.md)
   does not fix them. The holding household sells clothing
   directly from the building, as the Blacksmith does, and does not need a Store.
 - **Town Hall** is a **3×4** building that the Town raises as a [shared Town
@@ -170,7 +170,7 @@ Building types, animal care, products, breeding and horse travel.
   ([The world](../world.md#survival-and-exploration)), so a House stays the best
   shelter.
 - **Roads and bridges:** the world system generates infrastructure, not the
-  player or individual agent. The full agreed road rule is below; the starter
+  player or individual agent. The full agreed road rule is in [How Roads and bridges appear](land-and-roads.md#how-roads-and-bridges-appear); the starter
   Path becomes a Road in intended content.
 - **Livestock and mounts** belong in the finished game. Hostile predators do
   **not** belong in the current plan, though they may be revisited later.

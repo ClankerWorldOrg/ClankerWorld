@@ -217,8 +217,8 @@ election interview.
   at an invented nomination phase.
 
 These rules complete the initial ordinary proposal and election process.
-Law scope and the protected government-change process are agreed below.
-The mayor's office is also agreed below; enforcement and other topics stay separate.
+Law scope and the protected government-change process are agreed in [Town law scope and changes](laws-and-enforcement.md#town-law-scope-and-changes) and [Government-change procedure and safeguards](laws-and-enforcement.md#government-change-procedure-and-safeguards).
+The mayor's office is also agreed in [The mayor's office and elections](laws-and-enforcement.md#the-mayors-office-and-elections); enforcement and other topics stay separate.
 Implementation is tracked in
 [#618](https://github.com/compoodment/ClankerWorld/issues/618), followed by
 Town membership and admission integration in

@@ -69,7 +69,7 @@ Ordinary land requests cannot cover another household's field, and grant
 completion checks that the field is still clear of that conflict. A challenge
 to a recorded use right still follows the dispute procedure.
 Pending disputes supply no grant; hearings and transfers follow the case
-procedure below.
+procedure in [Land hearings and rulings](laws-and-enforcement.md#land-hearings-and-rulings).
 
 Competing requests are visible as **pending disputes**. While one is pending,
 conflicting formal rights transfers pause; residents are not evicted, goods

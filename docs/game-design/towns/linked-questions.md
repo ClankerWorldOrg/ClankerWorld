@@ -14,7 +14,7 @@ Open questions that connect these systems.
 These remain open; they are not new decisions.
 
 - **Later law and property interactions.** Adoption, law scope, land hearings
-   and initial nonviolent enforcement are agreed above. Agent-created laws
+   and initial nonviolent enforcement are agreed in [Laws and enforcement](laws-and-enforcement.md). Agent-created laws
    remain breakable while the simulation protects physical facts and validated
    ownership changes. Findings between Towns, Town inheritance law and the
    stages of theft and stronger enforcement were agreed on October 8. The
@@ -40,8 +40,8 @@ These remain open; they are not new decisions.
 - **Building storage catalogue.** Houses start at 1×1 and may expand to
     1×2 or 2×2, Warehouses 2×2 → 2×3, and Stores may be 1×1 or 1×2. These
     choices raise storage and House resident capacity under the agreed
-    footprint table above. The other chosen building
-    footprints are in the accepted roster above. Storage sizes and expansion
+    footprint table in [House resident capacity and relocation](households.md#house-resident-capacity-and-relocation). The other chosen building
+    footprints are in the accepted roster in [Agreed content and building sizes](buildings-and-projects.md#agreed-content-and-building-sizes). Storage sizes and expansion
     costs are agreed as provisional values in [Buildings, land, Towns, and
     animals](buildings-and-animals.md#buildings-land-towns-and-animals). Decide other construction
     costs and expansion triggers.

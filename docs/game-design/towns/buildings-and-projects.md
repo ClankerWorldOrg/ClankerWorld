@@ -45,7 +45,7 @@ and invented content are not silently approved. In particular:
   materials and finished goods with their existing owners. Market stalls and
   shared Town construction follow their separate accepted rules.
 - The accepted medical goods include **bandages and medicine**. Their cloth
-  and herb/water/fuel supply chains are agreed below; detailed recovery rates
+  and herb/water/fuel supply chains are agreed in [Item and resource pipelines](item-and-resource-pipelines.md#item-and-resource-pipelines); detailed recovery rates
   remain provisional. The October 2 decision stages bandage production, storage
   and trade now; injury causes and bandage treatment wait for the injury stage,
   agreed on October 8 in [Clinic supplies and illness
@@ -95,7 +95,7 @@ and invented content are not silently approved. In particular:
 
 The accepted roster includes proposed-but-now-chosen families such as clay,
 pottery, rope, orchard fruit and carry aids. Their sources, processing and uses
-are now agreed in the pipelines below; numerical balance is provisional.
+are now agreed in the [pipelines](item-and-resource-pipelines.md#item-and-resource-pipelines); numerical balance is provisional.
 
 ### Choosing building sites
 
@@ -210,7 +210,7 @@ to the Store and kept in its own stock before sale; a Store cannot sell from
 a remote House, farm, or Warehouse inventory. A Market admits traders from any
 Town; a Restaurant buys ingredients, cooks and sells potentially better meals.
 Town Hall supports governance and Port supports boats. The physical
-stock and barter rules are now agreed in the pipelines below, currency in
+stock and barter rules are now agreed in the [pipelines](item-and-resource-pipelines.md#item-and-resource-pipelines), currency in
 [Physical trade and production safeguards](item-and-resource-pipelines.md#physical-trade-and-production-safeguards)
 and an empty household's property in [Household goods and
 departure](households.md#household-goods-and-departure). Other ownership edge cases and
@@ -223,7 +223,7 @@ Better tools should gate harvesting/mining more advanced resources, creating
 a progression incentive. The agreed initial ladder is **wood tools → stone →
 stone tools → iron → iron tools → rarer materials**. Gold, diamond and other
 materials are extracted with iron pickaxes and used for ornaments or trade,
-as agreed in the pipelines below. **Agreed on October 8
+as agreed in the [pipelines](item-and-resource-pipelines.md#item-and-resource-pipelines). **Agreed on October 8
 ([#1274](https://github.com/compoodment/ClankerWorld/issues/1274)):** iron is
 the top built-in tool tier; any further tier comes from agents'
 [inventions](../inventions-and-mods.md). Wood and stone should both be useful for House construction;
